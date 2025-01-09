@@ -48,8 +48,20 @@ class File:
     def get_abs_path(self):
         return os.path.join(self.dir_path, self.name)
         
+    def is_file(self):
+        return os.path.isfile(self.get_abs_path())
+        
     def is_directory(self):
         return os.path.isdir(self.get_abs_path())
+
+    def get_creation_time(self):
+        return os.stat(self.get_abs_path()).st_birthtime
+    
+    def delete(self):
+        if self.is_file():
+            os.remove(self.get_abs_path())
+        else:
+            raise ValueError(f"Can't delete. {self.name} is a directory.")
 
     def __eq__(self, other):
         if isinstance(other, File):

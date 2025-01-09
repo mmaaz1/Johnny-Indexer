@@ -50,6 +50,10 @@ def _generate_markdown_index(file: str) -> None:
     markdown_content = f"> [!info] **Generated on**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
     markdown_content += _traverse_dir(file, file.level)
     
+    for child_file in file.get_child_files():
+        if child_file.name.startswith("Index of ") and child_file.name.endswith(".md"):
+            child_file.delete()
+
     output_file = os.path.join(file.get_abs_path(), f"Index of {file.name}.md")
     with open(output_file, "w", encoding="utf-8") as f:
         f.write(markdown_content)

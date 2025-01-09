@@ -6,17 +6,16 @@ class IndexFixer:
     This class holds the create index algorithm
     '''
 
-
     @staticmethod
     def _main_index_sort_key(file):
         if not file.is_indexed(proper = False):
-            return (float('inf'), file.name)
+            return (float('inf'), file.get_creation_time())
         
         main_index = ih.get_main_index(file)
         try:
-            return (float(main_index), file.name)
+            return (float(main_index), file.get_creation_time())
         except ValueError:
-            return (float('inf'), file.name)
+            return (float('inf'), file.get_creation_time())
 
     @staticmethod
     def _prefix_zeroes(file, main_index):
