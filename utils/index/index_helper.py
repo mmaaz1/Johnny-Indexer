@@ -1,4 +1,4 @@
-from utils.index_format_config import ProperIndexType, BaseIndexType, PROPER_NOT_INDEXED
+from utils.index.index_format_config import ProperIndexType, BaseIndexType, PROPER_NOT_INDEXED
 
 class IndexHelper:
     '''
@@ -133,8 +133,3 @@ class IndexHelper:
     @staticmethod
     def _get_index_config_from_file(file):
         return file.index_type().get_index_config()
-
-    # ToDo: if we can't find index positional information, prompt user for it.
-    # ToDo: Ask gpt what are some glaring issues they see in the project.
-    # ToDo: Use typing library to null check and check empty lists/strs in IndexHelper and IndexConfig
-    # ToDo: standardize whether invalid means we should return None or raise error

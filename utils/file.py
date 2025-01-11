@@ -1,6 +1,6 @@
 import os
 import copy
-from utils.index_helper import IndexHelper as ih
+from utils.index.index_helper import IndexHelper as ih
 
 class File:
     '''

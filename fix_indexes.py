@@ -1,9 +1,8 @@
 import os
 import sys
 from collections import deque
-from utils import File
-from utils import IndexHelper as ih
-from utils import IndexFixer as idx_f
+from utils import File, ConfigHelper as ch, ObsidianFixer as of
+from utils.index import IndexFixer as idx_f, IndexHelper as ih
 from generate_index_file import generate_index_file
 
 '''
@@ -62,7 +61,7 @@ def prompt_user(old_file, new_file):
         else:
             print("Invalid input. Please enter 'y' or 'n'.\n")
 
-def bfs_fix_indexes(area_files):
+def bfs_fix_indexes(root_file, area_files):
     queue = deque(area_files)
 
     while queue:
@@ -81,7 +80,10 @@ def bfs_fix_indexes(area_files):
             old_file = proposal.old_file
             new_file = proposal.new_file
             prompt_user(old_file, new_file)
+
             os.rename(old_file.get_abs_path(), new_file.get_abs_path())
+            if ch.load_from_config("fix_weblinks"):
+                of.update_weblinks(root_file, old_file, new_file)
             old_file.copy_from(new_file)
 
 def main():
@@ -91,7 +93,7 @@ def main():
     root_path = os.path.abspath(sys.argv[1])
     root_file = File(os.path.basename(root_path), os.path.dirname(root_path), -1)
     areas = ih.get_areas_in_dir(root_file)
-    bfs_fix_indexes(areas)
+    bfs_fix_indexes(root_file, areas)
     generate_index_file(root_file)
 
 if __name__ == "__main__":

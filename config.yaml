@@ -1,0 +1,8 @@
+prefixes_excluded_from_indexing:
+  - "."
+  - "Index of "
+patterns_excluded_from_indexing:
+  - "^\\d{4}-\\d{2}-\\d{2}"
+  - "^\\d{2}-\\d{2}-\\d{2}"
+
+fix_weblinks: true

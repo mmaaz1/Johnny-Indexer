@@ -1,7 +1,7 @@
 import pytest
 import copy
 from utils import File, IndexHelper as ih
-from utils.index_format_config import ProperIndexType, BaseIndexType, PROPER_NOT_INDEXED
+from utils.index.index_format_config import ProperIndexType, BaseIndexType, PROPER_NOT_INDEXED
 
 INDEX_TYPE_ATTRS = ["areas", "categories", "topics", "extensions", "subtopics_1", "subtopics_2"]
 VALIDITY_TYPE_ATTRS = ["proper", "invalid", "improper", "improper_exclusive"]

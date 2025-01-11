@@ -1,8 +1,8 @@
 import os
 import sys
 from utils import File
-from utils import IndexHelper as ih
-from utils import CommonFunctions as cf 
+from utils.index import IndexHelper as ih
+from utils import ConfigHelper as ch 
 from datetime import datetime
 
 def _should_exclude(file):
@@ -22,7 +22,7 @@ def _print_line(file, base_level):
     else:
         markdown_content += f"[[{file.name}]] "
 
-    if not ih.is_index(file, proper = True) and not cf.excluded_from_indexing(file):
+    if not ih.is_index(file, proper = True) and not ch.excluded_from_indexing(file):
         markdown_content += "**(NOT INDEXED)** "
 
     markdown_content += "\n"

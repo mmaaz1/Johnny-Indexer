@@ -1,5 +1,5 @@
-from utils.index_helper import IndexHelper as ih
-from utils.common_functions import CommonFunctions as cf
+from utils.index.index_helper import IndexHelper as ih
+from utils.config_helper import ConfigHelper as ch
 
 class IndexFixer:
     '''
@@ -23,7 +23,7 @@ class IndexFixer:
         if ih.is_category(file.get_parent_file(), proper = True): # Topics are special where we want the main index to have 2 digits (Eg: 12.01)
             desired_main_index_len = 2
         else:
-            num_indexed_files = sum(1 for file in file.get_sibling_files() if not cf.excluded_from_indexing(file)) - 1
+            num_indexed_files = sum(1 for file in file.get_sibling_files() if not ch.excluded_from_indexing(file)) - 1
             desired_main_index_len = len(str(num_indexed_files))
 
         return str(main_index).zfill(desired_main_index_len)
@@ -36,7 +36,7 @@ class IndexFixer:
             return ih.get_main_index(file)
 
         sibling_files = file.get_sibling_files()
-        indexed_files_in_dir = [sibling_file for sibling_file in sibling_files if not cf.excluded_from_indexing(file)]
+        indexed_files_in_dir = [sibling_file for sibling_file in sibling_files if not ch.excluded_from_indexing(file)]
         indexed_files_in_dir.sort(key = IndexFixer._main_index_sort_key)
 
         # ToDo: We need to validate that only 10 areas and categories, or 100 topics, subtopics and extensions can exist
@@ -62,7 +62,7 @@ class IndexFixer:
         '''Creates new index from parent_index and main_index'''
         if file.name.startswith("32.00-0+0"):
             print("asdf")
-        if cf.excluded_from_indexing(file):
+        if ch.excluded_from_indexing(file):
             return
         parent_index = IndexFixer._compute_parent_index(file)
         main_index = IndexFixer._compute_new_main_index(file)
