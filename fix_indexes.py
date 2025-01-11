@@ -1,8 +1,9 @@
 import sys
 from collections import deque
-from utils import File, ConfigHelper as ch, ObsidianFixer as of
+from utils import File, ConfigHelper as ch
+from utils.obsidian import ObsidianFixer as of
 from utils.index import IndexFixer as idx_f, IndexHelper as ih
-from generate_index_file import generate_index_file
+from create_jdex import create_jdex
 
 '''
 fix_indexes.py
@@ -95,7 +96,7 @@ def main():
     areas = ih.get_areas_in_dir(root_file)
     
     bfs_fix_indexes(root_file, areas)
-    generate_index_file(root_file)
+    create_jdex(root_file)
 
 if __name__ == "__main__":
     main()

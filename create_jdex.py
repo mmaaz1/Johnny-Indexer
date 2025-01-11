@@ -56,7 +56,7 @@ def _generate_markdown_index(file: str) -> None:
     with open(output_file.get_abs_path(), "w", encoding="utf-8") as f:
         f.write(markdown_content)
 
-def generate_index_file(root_file):
+def create_jdex(root_file):
     area_files = ih.get_areas_in_dir(root_file)
     
     files_to_index = [root_file] + area_files
@@ -72,7 +72,7 @@ def main():
     root_path = sys.argv[1]
     root_file = File(root_path, -1)
     
-    generate_index_file(root_file)
+    create_jdex(root_file)
 
 if __name__ == "__main__":
     main()
