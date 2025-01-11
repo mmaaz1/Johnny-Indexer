@@ -32,23 +32,23 @@ _SUBTOPIC_INDEX_PATTERN_2 = r'^(?P<p_idx>[0-9]{2}\.[0-9]{2}\+[A-Z]+)-(?P<m_idx>[
 _IMPROPER_SUBTOPIC_INDEX_PATTERN_2 = r'^(?P<p_idx>[0-9]{2}\.[0-9]{2}\+[A-Z]+)-(?P<m_idx>[0-9]+)\.(?P<s_idx>[0-9]+)$'
 
 _IMPROPER_INDEX_PATTERNS = [
-    _WILDCARD_INDEX_PATTERN,                # Y...
-    _IMPROPER_WILDCARD_INDEX_PATTERN,       # Y...S...
-    
     _AREA_INDEX_PATTERN,                    # Y0-Y9
-    _IMPROPER_AREA_INDEX_PATTERN,           # Y0-Y9.S...
+    _IMPROPER_AREA_INDEX_PATTERN,           # Y0-Y9.S*
     
     _CATEGORY_INDEX_PATTERN,                # XY
-    _IMPROPER_CATEGORY_INDEX_PATTERN,       # XY.S...
+    _IMPROPER_CATEGORY_INDEX_PATTERN,       # XY.S*
 
     _TOPIC_INDEX_PATTERN,                   # XX.YY
-    _IMPROPER_TOPIC_INDEX_PATTERN,          # XX.YY.S...
+    _IMPROPER_TOPIC_INDEX_PATTERN,          # XX.YY.S*
     
-    _SUPTOPIC_INDEX_PATTERN_1,              # XX.XX-YYY...
-    _IMPROPER_SUPTOPIC_INDEX_PATTERN_1,     # XX.XX-YYY.S...
+    _SUPTOPIC_INDEX_PATTERN_1,              # XX.XX-Y*
+    _IMPROPER_SUPTOPIC_INDEX_PATTERN_1,     # XX.XX-Y*.S*
 
-    _SUBTOPIC_INDEX_PATTERN_2,              # XX.XX+SUFF-YYY...
-    _IMPROPER_SUBTOPIC_INDEX_PATTERN_2,      # XX.XX+SUFF-YYY.S...
+    _SUBTOPIC_INDEX_PATTERN_2,              # XX.XX+SUFF-Y*
+    _IMPROPER_SUBTOPIC_INDEX_PATTERN_2,     # XX.XX+SUFF-Y*.S*
+
+    _WILDCARD_INDEX_PATTERN,                # Y*
+    _IMPROPER_WILDCARD_INDEX_PATTERN,       # Y*.S*
 ]
 
 class BaseIndexType(Enum):
@@ -94,7 +94,7 @@ class BaseIndexType(Enum):
     }
     SUBTOPIC_1 = {
         "proper_index_patterns": [
-            _SUPTOPIC_INDEX_PATTERN_1                       # XX.XX-YYY...
+            _SUPTOPIC_INDEX_PATTERN_1                       # XX.XX-Y*
         ],
         "improper_index_patterns": _IMPROPER_INDEX_PATTERNS,
         "levels": [3],
@@ -104,7 +104,7 @@ class BaseIndexType(Enum):
     }
     SUBTOPIC_2 = {
         "proper_index_patterns": [
-            _SUBTOPIC_INDEX_PATTERN_2                       # XX.XX+SUFF-YYY...
+            _SUBTOPIC_INDEX_PATTERN_2                       # XX.XX+SUFF-Y*
         ],
         "improper_index_patterns": _IMPROPER_INDEX_PATTERNS,
         "levels": [4],
@@ -114,7 +114,7 @@ class BaseIndexType(Enum):
     }
     THE_REST = {
         "proper_index_patterns": [
-            _WILDCARD_INDEX_PATTERN                       # Y...
+            _WILDCARD_INDEX_PATTERN                       # Y*
         ],
         "improper_index_patterns": _IMPROPER_INDEX_PATTERNS,
         "levels": [4, 5, 6, 7, 8, 9, 10],
