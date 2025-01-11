@@ -1,28 +1,24 @@
-import os
-import re
+from utils import ConfigHelper as cf
 
 class ObsidianFixer:
-    @staticmethod 
-    def _remove_extension(filename):
-        filename_without_extension, _ = os.path.splitext(filename)
-        return filename_without_extension
-
     @staticmethod
-    def update_weblinks(root_file, old_file, new_file):
-        old_pattern = f"[[{ObsidianFixer._remove_extension(old_file.name)}]]"
-        new_pattern = f"[[{ObsidianFixer._remove_extension(new_file.name)}]]"
+    def update_weblinks(file, old_file_ref, new_file_ref):
+        if cf.excluded_from_indexing(file):
+            return
+        
+        old_pattern = f"[[{old_file_ref.get_name_without_extension()}]]"
+        new_pattern = f"[[{new_file_ref.get_name_without_extension()}]]"
 
-        for root, _, files in os.walk(root_file.get_abs_path()):
-            for file in files:
-                if not file.endswith('.md'): # Obsidian only opens supports files
-                    continue
+        if file.is_file() and file.get_extension() in [".md"]:
+            with open(file.get_abs_path(), 'r', encoding='utf-8') as f:
+                content = f.read()
+            updated_content = content.replace(old_pattern, new_pattern)
 
-                file_path = os.path.join(root, file)
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                updated_content = content.replace(old_pattern, new_pattern)
-
-                if content != updated_content:
-                    with open(file_path, 'w', encoding='utf-8') as f:
-                        f.write(updated_content)
-                    print(f"Updated references of {old_file.name} in: {file}")
+            if content != updated_content:
+                with open(file.get_abs_path(), 'w', encoding='utf-8') as f:
+                    f.write(updated_content)
+                print(f"Updated references of {old_file_ref.name} in: {file}")
+        
+        elif file.is_dir():
+            for child_file in file.get_children():
+                ObsidianFixer.update_weblinks(child_file, old_file_ref, new_file_ref)

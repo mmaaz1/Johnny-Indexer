@@ -183,7 +183,7 @@ class _IndexConfigurator:
             return False
         if file.level not in self._levels:
             return False
-        if file.get_parent_file().index_type() not in self._parent_index_types:
+        if file.get_parent().index_type() not in self._parent_index_types:
             return False
 
         return any(re.match(pattern, index) for pattern in self._patterns)

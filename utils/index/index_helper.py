@@ -122,7 +122,7 @@ class IndexHelper:
     @staticmethod
     def get_areas_in_dir(file):
         areas = []
-        for child_file in file.get_child_files():
+        for child_file in file.get_children():
             if IndexHelper.is_area(child_file, proper = True):
                 areas.append(child_file)
         if len(areas) == 0:

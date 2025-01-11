@@ -1,4 +1,3 @@
-import os
 import sys
 from collections import deque
 from utils import File, ConfigHelper as ch, ObsidianFixer as of
@@ -44,22 +43,22 @@ def propose_index_update(old_file):
 
 def prompt_user(old_file, new_file):
     while True:
-        print(f"\nParent: {old_file.get_parent_file()}")
+        print(f"\nParent: {old_file.get_parent()}")
         print("Siblings:")
-        for iter_file in old_file.get_sibling_files():
+        for iter_file in old_file.get_siblings():
             arrow = " ->" if iter_file == old_file else " -"
             print(f"{arrow} {iter_file}")
         print("")
 
         user_input = input(f"'{old_file.name}' => '{new_file.name}' (y/n): ").strip().lower()
         if user_input == 'y':
-            print("Proceeding.\n")
+            print("Proceeding.")
             break
         elif user_input == 'n':
-            print("Exiting.\n")
+            print("Exiting.")
             sys.exit(0)
         else:
-            print("Invalid input. Please enter 'y' or 'n'.\n")
+            print("Invalid input. Please enter 'y' or 'n'.")
 
 def bfs_fix_indexes(root_file, area_files):
     queue = deque(area_files)
@@ -68,8 +67,8 @@ def bfs_fix_indexes(root_file, area_files):
         proposed_changes = []
         for _ in range(len(queue)):
             parent_file = queue.popleft()
-            for file in parent_file.get_child_files():
-                if file.is_directory():
+            for file in parent_file.get_children():
+                if file.is_dir():
                     queue.append(file)
                 proposal = propose_index_update(file)
                 if proposal is not None:
@@ -81,18 +80,20 @@ def bfs_fix_indexes(root_file, area_files):
             new_file = proposal.new_file
             prompt_user(old_file, new_file)
 
-            os.rename(old_file.get_abs_path(), new_file.get_abs_path())
             if ch.load_from_config("fix_weblinks"):
                 of.update_weblinks(root_file, old_file, new_file)
-            old_file.copy_from(new_file)
+            old_file.rename(new_file)
+            print("")
 
 def main():
     '''Creating a main function to minimize the number of global variables'''
     if len(sys.argv) != 2:
         raise ValueError("Usage: python fix_indexes.py <root_path>")
-    root_path = os.path.abspath(sys.argv[1])
-    root_file = File(os.path.basename(root_path), os.path.dirname(root_path), -1)
+    
+    root_path = sys.argv[1]
+    root_file = File(root_path, -1)
     areas = ih.get_areas_in_dir(root_file)
+    
     bfs_fix_indexes(root_file, areas)
     generate_index_file(root_file)
 

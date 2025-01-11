@@ -20,10 +20,10 @@ class IndexFixer:
     @staticmethod
     def _prefix_zeroes(file, main_index):
         '''This ensures that all indexes in one directory are the same length'''
-        if ih.is_category(file.get_parent_file(), proper = True): # Topics are special where we want the main index to have 2 digits (Eg: 12.01)
+        if ih.is_category(file.get_parent(), proper = True): # Topics are special where we want the main index to have 2 digits (Eg: 12.01)
             desired_main_index_len = 2
         else:
-            num_indexed_files = sum(1 for file in file.get_sibling_files() if not ch.excluded_from_indexing(file)) - 1
+            num_indexed_files = sum(1 for file in file.get_siblings() if not ch.excluded_from_indexing(file)) - 1
             desired_main_index_len = len(str(num_indexed_files))
 
         return str(main_index).zfill(desired_main_index_len)
@@ -35,7 +35,7 @@ class IndexFixer:
         if ih.is_extension(file, proper = False):
             return ih.get_main_index(file)
 
-        sibling_files = file.get_sibling_files()
+        sibling_files = file.get_siblings()
         indexed_files_in_dir = [sibling_file for sibling_file in sibling_files if not ch.excluded_from_indexing(file)]
         indexed_files_in_dir.sort(key = IndexFixer._main_index_sort_key)
 
@@ -47,7 +47,7 @@ class IndexFixer:
     
     @staticmethod
     def _compute_parent_index(child_file):
-        parent_file = child_file.get_parent_file()
+        parent_file = child_file.get_parent()
         if ih.is_area(parent_file, proper = True):
             return ih.get_main_index(parent_file)
         elif ih.is_subtopic(parent_file, proper = True):
