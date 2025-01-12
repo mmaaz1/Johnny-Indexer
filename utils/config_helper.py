@@ -1,3 +1,4 @@
+import os
 import re
 import yaml
 
@@ -7,7 +8,11 @@ class ConfigHelper:
 
     @staticmethod    
     def load_from_config(key):
-        with open(_CONFIG_FILE_NAME, 'r') as config_file:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        root_path = os.path.dirname(current_dir)
+        config_path = os.path.join(root_path, 'config.yaml')
+        
+        with open(config_path, 'r') as config_file:
             config = yaml.safe_load(config_file)
         if key not in config:
             raise ValueError(f"Invalid key {key} in {_CONFIG_FILE_NAME}")
