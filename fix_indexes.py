@@ -46,7 +46,7 @@ def prompt_user(old_file, new_file):
     while True:
         print(f"\nParent: {old_file.get_parent()}")
         print("Siblings:")
-        for iter_file in old_file.get_siblings():
+        for iter_file in [sibling for sibling in old_file.get_siblings() if not ch.excluded_from_indexing(sibling)]:
             arrow = " ->" if iter_file == old_file else " -"
             print(f"{arrow} {iter_file}")
         print("")

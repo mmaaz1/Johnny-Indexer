@@ -35,8 +35,7 @@ class IndexFixer:
         if ih.is_extension(file, proper = False):
             return ih.get_main_index(file)
 
-        sibling_files = file.get_siblings()
-        indexed_files_in_dir = [sibling_file for sibling_file in sibling_files if not ch.excluded_from_indexing(file)]
+        indexed_files_in_dir = [sibling_file for sibling_file in file.get_siblings() if not ch.excluded_from_indexing(file)]
         indexed_files_in_dir.sort(key = IndexFixer._main_index_sort_key)
 
         # ToDo: We need to validate that only 10 areas and categories, or 100 topics, subtopics and extensions can exist
