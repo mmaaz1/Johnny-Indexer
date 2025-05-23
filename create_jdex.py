@@ -1,7 +1,7 @@
 import sys
-from utils import File
-from utils.index import IndexHelper as ih
-from utils import ConfigHelper as ch 
+from utils.file import File
+from utils.index.index_helper import IndexHelper as ih
+from utils.config.config_helper import ConfigHelper as ch
 from datetime import datetime
 
 def _should_exclude(file):
@@ -70,7 +70,7 @@ def main():
         raise ValueError("Usage: python fix_indexes.py <root_path>")
     
     root_path = sys.argv[1]
-    root_file = File(root_path, -1)
+    root_file = File.from_abs_path(root_path, -1)
     
     create_jdex(root_file)
 

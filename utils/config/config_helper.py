@@ -1,6 +1,6 @@
-import os
 import re
 import yaml
+from utils.file import File
 
 _CONFIG_FILE_NAME = "config.yaml"
 
@@ -8,11 +8,9 @@ class ConfigHelper:
 
     @staticmethod    
     def load_from_config(key):
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        root_path = os.path.dirname(current_dir)
-        config_path = os.path.join(root_path, 'config.yaml')
-        
-        with open(config_path, 'r') as config_file:
+        config_path = File.from_name_and_path(_CONFIG_FILE_NAME, File.get_root_path())
+
+        with open(config_path.get_abs_path(), 'r') as config_file:
             config = yaml.safe_load(config_file)
         if key not in config:
             raise ValueError(f"Invalid key {key} in {_CONFIG_FILE_NAME}")
