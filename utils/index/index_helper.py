@@ -2,7 +2,7 @@ from utils.index.index_format_config import ProperIndexType, BaseIndexType, PROP
 
 class IndexHelper:
     '''
-    This class serves as a layer of abstraction on top of IndexConfigs. It creates holds functions related to index
+    This class serves as a layer of abstraction on top of IndexConfigs. It holds functions related to index
     '''
 
     @staticmethod
@@ -105,16 +105,6 @@ class IndexHelper:
         )
 
     @staticmethod
-    def _is_subtopic_1(file, proper):
-        index_type = ProperIndexType(BaseIndexType.SUBTOPIC_1, proper)
-        return index_type.get_index_config().validate(file)
-
-    @staticmethod
-    def _is_subtopic_2(file, proper):
-        index_type = ProperIndexType(BaseIndexType.SUBTOPIC_2, proper)
-        return index_type.get_index_config().validate(file)
-
-    @staticmethod
     def is_the_rest(file, proper):
         index_type = ProperIndexType(BaseIndexType.THE_REST, proper)
         return index_type.get_index_config().validate(file)
@@ -129,6 +119,16 @@ class IndexHelper:
             raise ValueError("Received empty areas directory")
 
         return areas
+
+    @staticmethod
+    def _is_subtopic_1(file, proper):
+        index_type = ProperIndexType(BaseIndexType.SUBTOPIC_1, proper)
+        return index_type.get_index_config().validate(file)
+
+    @staticmethod
+    def _is_subtopic_2(file, proper):
+        index_type = ProperIndexType(BaseIndexType.SUBTOPIC_2, proper)
+        return index_type.get_index_config().validate(file)
 
     @staticmethod
     def _get_index_config_from_file(file):

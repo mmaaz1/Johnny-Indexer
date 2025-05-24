@@ -1,8 +1,10 @@
 prefixes_excluded_from_indexing:
-  - "."
-  - "Index of "
-patterns_excluded_from_indexing:
-  - "^\\d{4}-\\d{2}-\\d{2}"
-  - "^\\d{2}-\\d{2}-\\d{2}"
+  - "." # Hidden files
+  - "Index of " # Index files
 
+patterns_excluded_from_indexing:
+  - "^\\d{4}-\\d{2}-\\d{2}" # 2024-12-31
+  - "^\\d{2}-\\d{2}-\\d{2}" # 20-12-31
+
+# Whether the script will update wikilinks in obsidian markdown files after re-indexing
 fix_weblinks: true

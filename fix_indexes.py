@@ -1,8 +1,10 @@
 import sys
 from collections import deque
-from utils import File, ConfigHelper as ch
+from utils.file import File
+from utils.config import ConfigHelper as ch
 from utils.obsidian import ObsidianFixer as of
-from utils.index import IndexFixer as idx_f, IndexHelper as ih
+from utils.index.index_fixer import IndexFixer as idx_f
+from utils.index.index_helper import IndexHelper as ih
 from create_jdex import create_jdex
 
 '''
@@ -47,8 +49,10 @@ def prompt_user(old_file, new_file):
         print(f"\nParent: {old_file.get_parent()}")
         print("Siblings:")
         for iter_file in [sibling for sibling in old_file.get_siblings() if not ch.excluded_from_indexing(sibling)]:
-            arrow = " ->" if iter_file == old_file else " -"
-            print(f"{arrow} {iter_file}")
+            if iter_file != old_file:
+                print(f"- {iter_file}")
+            else:
+                print(f"-> {iter_file} => {new_file}")
         print("")
 
         user_input = input(f"'{old_file.name}' => '{new_file.name}' (y/n): ").strip().lower()
@@ -74,8 +78,8 @@ def bfs_fix_indexes(root_file, area_files):
                 proposal = propose_index_update(file)
                 if proposal is not None:
                     proposed_changes.append(proposal)
-        
-        proposed_changes.sort(key=lambda proposal: proposal.new_file.index())
+
+        proposed_changes.sort(key=lambda proposal: proposal.new_file)
         for proposal in proposed_changes:
             old_file = proposal.old_file
             new_file = proposal.new_file
@@ -92,7 +96,7 @@ def main():
         raise ValueError("Usage: python fix_indexes.py <root_path>")
     
     root_path = sys.argv[1]
-    root_file = File(root_path, -1)
+    root_file = File.from_abs_path(root_path, -1)
     areas = ih.get_areas_in_dir(root_file)
     
     bfs_fix_indexes(root_file, areas)
