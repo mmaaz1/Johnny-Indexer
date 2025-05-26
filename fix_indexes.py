@@ -83,12 +83,14 @@ def bfs_fix_indexes(root_file, area_files):
         for proposal in proposed_changes:
             old_file = proposal.old_file
             new_file = proposal.new_file
-            prompt_user(old_file, new_file)
+
+            if ch.load_from_config("prompt_for_approval"):
+                prompt_user(old_file, new_file)
 
             if ch.load_from_config("fix_weblinks"):
                 of.update_weblinks(root_file, old_file, new_file)
+
             old_file.rename(new_file)
-            print("")
 
 def main():
     '''Creating a main function to minimize the number of global variables'''

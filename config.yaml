@@ -8,3 +8,6 @@ patterns_excluded_from_indexing:
 
 # Whether the script will update wikilinks in obsidian markdown files after re-indexing
 fix_weblinks: true
+
+# Whether user approval is required before making any index updates
+prompt_for_approval: false
