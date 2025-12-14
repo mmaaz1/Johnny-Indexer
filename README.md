@@ -46,37 +46,37 @@ The Johnny Indexer implements a hierarchical indexing system based on the Johnny
 
 The system defines seven types of organization across 4 levels:
 
-1. **Area** (Level 0) - ToDo
+1. **Area** (Level 0) - Represents broad organizational divisions of your life or expertise.
     - Format: `X0-X9` (e.g., `10-19`, `20-29`)
-    - Parent: Area
+    - Parent: System Root
     - Max: 10 areas per system
 
-2. **Category** (Level 1) - ToDo
+1. **Category** (Level 1) - Groups related items within an area by a subject matter.
     - Format: `XY` (e.g., `11`, `12`, `23`)
     - Parent: Area
     - Max: 10 categories per area
 
-3. **Topic** (Level 2) - ToDo
+1. **Topic** (Level 2) - Main unit of a note in which you keep your actual materials (documents, notes, files). These are topical containers with descriptive names (e.g., `12.21 Electricity, gas, & water`)
     - Format: `XX.YY` (e.g., `11.01`, `11.05`, `12.03`)
     - Parent: Category
     - Max: 100 topics per category
 
-4. **Extension** (Level 3) - ToDo
+1. **Extension** (Level 3) - Groups Topics into specialized subdivisions
     - Format: `XX.XX+SUFF` (e.g., `11.05+DOCS`, `12.03+CODE`)
     - Parent: Topic
     - Max: Unlimited, but < 5 is preferred
 
-5. **Subtopic Type 1** (Level 3) - ToDo
+1. **Subtopic Type 1** (Level 3) - Splits up a topic into smaller pieces of notes
     - Format: `XX.XX-Y*` (e.g., `11.05-1`, `11.05-10`, `12.03-5`)
     - Parent: Topic
     - Max: 100 subtopics per topic
 
-6. **Subtopic Type 2** (Level 4) - ToDo
+1. **Subtopic Type 2** (Level 4) - Splits up a topic into smaller pieces of notes
     - Format: `XX.XX+SUFF-Y*` (e.g., `11.05+DOCS-1`, `12.03+CODE-15`)
     - Parent: Extension
     - Max: 100 subtopics per extension
 
-7. **The Rest** (Level 4+) - ToDo
+1. **The Rest** (Level 4+) - The system has given up. Existence of these files indicates you need to re-organize
     - Format: `Y*` (e.g., `1`, `25`, `100`)
     - Parent: Subtopic Type 1 or Subtopic Type 2
     - Max: Unlimited
@@ -103,7 +103,7 @@ The system defines seven types of organization across 4 levels:
 1. **Separator**: The set of characters used to separate the parent index and the main index
     - Generally, these are '-', '.' or ''.
 
-4. **Final Index**: Constructed by combining parent and main indexes with the appropriate separator
+1. **Final Index**: Constructed by combining parent and main indexes with the appropriate separator
 
 **Example**: In a Topic `12.34`, `12` is the parent index, `34` is the main index, and `.` is the separator
 
@@ -112,7 +112,7 @@ The system defines seven types of organization across 4 levels:
 Files are processed using a breadth-first search (BFS) algorithm:
 
 1. **Initialize**: Start with all Area directories at Level 0
-2. **Collect Changes**: For each directory level:
+1. **Collect Changes**: For each directory level:
    - Scan all non-excluded files in current level
    - Sort files alphabetically by filename
    - Assign main indexes based on position in sorted list (0, 1, 2, ...) with zero-padding to match directory width
@@ -120,14 +120,14 @@ Files are processed using a breadth-first search (BFS) algorithm:
    - For Extensions, preserve their alphabetic suffix (e.g., `+DOCS`, `+CODE`)
    - Combine parent index + separator + main index to create expected full index
    - Identify files where actual index doesn't match expected index
-3. **Sort & Present**: Sort proposed changes alphabetically by new filename
-4. **User Confirmation** (if enabled): Prompt user to accept (`y`) or reject (`n`) changes
-5. **Update Links** (if enabled):
+1. **Sort & Present**: Sort proposed changes alphabetically by new filename
+1. **User Confirmation** (if enabled): Prompt user to accept (`y`) or reject (`n`) changes
+1. **Update Links** (if enabled):
    - Search all files in the directory tree for references to the old filename
    - Update any found links to point to the new filename
-6. **Apply Rename**: Rename the file on disk
-7. **Recurse**: Move to the next directory level and repeat from step 2
-8. **Generate JDex**: After all renames complete, regenerate index files
+1. **Apply Rename**: Rename the file on disk
+1. **Recurse**: Move to the next directory level and repeat from step 2
+1. **Generate JDex**: After all renames complete, regenerate index files
 
 ### JDex File Generation
 
