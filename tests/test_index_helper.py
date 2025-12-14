@@ -1,7 +1,7 @@
 import pytest
-import copy
-from utils import File, IndexHelper as ih
-from utils.index.index_format_config import ProperIndexType, BaseIndexType, PROPER_NOT_INDEXED
+from typing import List, Callable, Any
+from utils.file import File
+from utils.index.index_helper import IndexHelper as ih
 
 INDEX_TYPE_ATTRS = ["areas", "categories", "topics", "extensions", "subtopics_1", "subtopics_2"]
 VALIDITY_TYPE_ATTRS = ["proper", "invalid", "improper", "improper_exclusive"]
@@ -17,27 +17,27 @@ EXPECTATION_MATRIX = [
 ]
 
 class IndexTestInputs:
-    def __init__(self):
-        self.proper = []
-        self.invalid = []
-        self.improper = [] # proper + improper_exclusive = improper
-        self.improper_exclusive = []
+    def __init__(self) -> None:
+        self.proper: List[File] = []
+        self.invalid: List[File] = []
+        self.improper: List[File] = [] # proper + improper_exclusive = improper
+        self.improper_exclusive: List[File] = []
 
 class OuterTestInputs:
-    def __init__(self):
+    def __init__(self) -> None:
         self.areas = IndexTestInputs()
         self.categories = IndexTestInputs()
         self.topics = IndexTestInputs()
         self.extensions = IndexTestInputs()
         self.subtopics_1 = IndexTestInputs()
         self.subtopics_2 = IndexTestInputs()
-        self.proper = []
-        self.invalid = []
-        self.improper = []
-        self.improper_exclusive = []
+        self.proper: List[File] = []
+        self.invalid: List[File] = []
+        self.improper: List[File] = []
+        self.improper_exclusive: List[File] = []
 
 @pytest.fixture
-def test_inputs():
+def test_inputs() -> OuterTestInputs:
     """Fixture providing all test file configurations"""
     test_inputs = OuterTestInputs()
 
@@ -129,31 +129,31 @@ def test_inputs():
 
     for index_type_attr in INDEX_TYPE_ATTRS:
         index_test_inputs = getattr(test_inputs, index_type_attr)
-        
+
         index_test_inputs.improper = index_test_inputs.improper_exclusive + index_test_inputs.proper
-        
+
         test_inputs.proper += index_test_inputs.proper
         test_inputs.improper_exclusive += index_test_inputs.improper_exclusive
         test_inputs.improper += index_test_inputs.improper
         test_inputs.invalid += index_test_inputs.invalid
-        
+
     return test_inputs
 
-    
+
 @pytest.mark.parametrize("validity_type,proper,expected", EXPECTATION_MATRIX)
-def test_is_indexed(test_inputs, validity_type, proper, expected):
+def test_is_indexed(test_inputs: OuterTestInputs, validity_type: str, proper: bool, expected: bool) -> None:
     """Test if files are properly indexed"""
     test_files = getattr(test_inputs, validity_type)
     _test_file_indexing(test_files, ih.is_index, proper, expected)
 
-def _test_file_indexing(test_files, test_function, proper, expected):
+def _test_file_indexing(test_files: List[File], test_function: Callable[..., Any], proper: bool, expected: bool) -> None:
     for file in test_files:
         result = test_function(file, proper=proper)
         if result != expected:
             pytest.fail(f"Failed '{test_function.__name__}(proper={proper})' check for file: '{file}'\n"
                        f"Expected: {expected}, Got: {result}\n")
 
-def _test_excluded_indexes(test_inputs, excluded_index, test_function):
+def _test_excluded_indexes(test_inputs: OuterTestInputs, excluded_index: str, test_function: Callable[..., Any]) -> None:
     if excluded_index not in INDEX_TYPE_ATTRS:
         raise ValueError(f"{excluded_index} is not a valid index type")
 
@@ -166,42 +166,42 @@ def _test_excluded_indexes(test_inputs, excluded_index, test_function):
                 _test_file_indexing(non_area_files, test_function, proper, False)
 
 @pytest.mark.parametrize("validity_type,proper,expected", EXPECTATION_MATRIX)
-def test_is_area(test_inputs, validity_type, proper, expected):
+def test_is_area(test_inputs: OuterTestInputs, validity_type: str, proper: bool, expected: bool) -> None:
     """Test area validation"""
     area_files = getattr(test_inputs.areas, validity_type)
     _test_file_indexing(area_files, ih.is_area, proper, expected)
     _test_excluded_indexes(test_inputs, "areas", ih.is_area)
 
 @pytest.mark.parametrize("validity_type,proper,expected", EXPECTATION_MATRIX)
-def test_is_category(test_inputs, validity_type, proper, expected):
+def test_is_category(test_inputs: OuterTestInputs, validity_type: str, proper: bool, expected: bool) -> None:
     """Test category validation"""
     category_files = getattr(test_inputs.categories, validity_type)
     _test_file_indexing(category_files, ih.is_category, proper, expected)
     _test_excluded_indexes(test_inputs, "categories", ih.is_category)
 
 @pytest.mark.parametrize("validity_type,proper,expected", EXPECTATION_MATRIX)
-def test_is_topic(test_inputs, validity_type, proper, expected):
+def test_is_topic(test_inputs: OuterTestInputs, validity_type: str, proper: bool, expected: bool) -> None:
     """Test topic validation"""
     topic_files = getattr(test_inputs.topics, validity_type)
     _test_file_indexing(topic_files, ih.is_topic, proper, expected)
     _test_excluded_indexes(test_inputs, "topics", ih.is_topic)
 
 @pytest.mark.parametrize("validity_type,proper,expected", EXPECTATION_MATRIX)
-def test_is_extension(test_inputs, validity_type, proper, expected):
+def test_is_extension(test_inputs: OuterTestInputs, validity_type: str, proper: bool, expected: bool) -> None:
     """Test extension validation"""
     extension_files = getattr(test_inputs.extensions, validity_type)
     _test_file_indexing(extension_files, ih.is_extension, proper, expected)
     _test_excluded_indexes(test_inputs, "extensions", ih.is_extension)
 
 @pytest.mark.parametrize("validity_type,proper,expected", EXPECTATION_MATRIX)
-def test_is_subtopic_1(test_inputs, validity_type, proper, expected):
+def test_is_subtopic_1(test_inputs: OuterTestInputs, validity_type: str, proper: bool, expected: bool) -> None:
     """Test subtopic 1 validation"""
     subtopic_1_files = getattr(test_inputs.subtopics_1, validity_type)
     _test_file_indexing(subtopic_1_files, ih._is_subtopic_1, proper, expected)
     _test_excluded_indexes(test_inputs, "subtopics_1", ih._is_subtopic_1)
 
 @pytest.mark.parametrize("validity_type,proper,expected", EXPECTATION_MATRIX)
-def test_is_subtopic_2(test_inputs, validity_type, proper, expected):
+def test_is_subtopic_2(test_inputs: OuterTestInputs, validity_type: str, proper: bool, expected: bool) -> None:
     """Test subtopic 2 validation"""
     subtopic_2_files = getattr(test_inputs.subtopics_2, validity_type)
     _test_file_indexing(subtopic_2_files, ih._is_subtopic_2, proper, expected)

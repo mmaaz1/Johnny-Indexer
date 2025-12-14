@@ -4,6 +4,7 @@ import sys
 import os
 import subprocess
 from datetime import datetime
+from typing import Tuple
 
 '''
 1. Open your crontab file:
@@ -13,12 +14,12 @@ crontab -e
 */5 * * * * /usr/bin/python3 /path/to/commit_daily.py /path/to/repo >> /path/to/commit_daily.log 2>&1
 '''
 
-def run_command(command):
+def run_command(command: str) -> Tuple[str, str]:
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     output, error = process.communicate()
     return output.decode('utf-8').strip(), error.decode('utf-8').strip()
 
-def check_and_commit(repo_path):
+def check_and_commit(repo_path: str) -> None:
     repo_name = os.path.basename(repo_path)
     os.chdir(repo_path)
 
@@ -43,10 +44,10 @@ def check_and_commit(repo_path):
         print(f"Changes committed with message: {commit_message}")
     print("")
 
-def main():
+def main() -> None:
     if len(sys.argv) != 2:
         raise ValueError("Usage: python commit_daily.py <repo_path>")
-    
+
     repo_path = sys.argv[1]
     check_and_commit(repo_path)
 

@@ -1,4 +1,5 @@
 from utils.config.config_helper import ConfigHelper
+from utils.file.file import File
 import re
 
 class ObsidianFixer:
@@ -8,7 +9,7 @@ class ObsidianFixer:
     """
 
     @staticmethod
-    def update_weblinks(file, old_file_ref, new_file_ref):
+    def update_weblinks(file: File, old_file_ref: File, new_file_ref: File) -> None:
         """
         Updates wiki-style links in Markdown files, replacing references
         to an old_file_ref with references to new_file_ref.
@@ -32,7 +33,7 @@ class ObsidianFixer:
                 ObsidianFixer.update_weblinks(child_file, old_file_ref, new_file_ref)
 
     @staticmethod
-    def _update_weblinks_for_file(file, old_file_ref, new_file_ref):
+    def _update_weblinks_for_file(file: File, old_file_ref: File, new_file_ref: File) -> None:
         old_name = old_file_ref.get_name_without_extension()
         new_name = new_file_ref.get_name_without_extension()
 
