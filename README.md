@@ -20,7 +20,7 @@ The Johnny Indexer is a Python-based tool designed to automate the indexing of f
 - `fix_weblinks`: Whether the script should fix file weblinks at the end of indexing fixes
 - `prompt_for_approval`: Whether the should should prompt user for approval before each fix
 
-## Setup
+## Knowledge Base Setup
 
 In your knowledge base, manually create the Area indexes with the format `X0-X9`. All files and directories within the areas will be indexed by this script.
 
@@ -81,7 +81,7 @@ The system defines seven types of organization across 4 levels:
     - Parent: Subtopic Type 1 or Subtopic Type 2
     - Max: Unlimited
 
-## Development
+## Design and Implementation
 
 ### Glossary
 
@@ -137,7 +137,3 @@ The system automatically generates Markdown index files (`Index of [DirectoryNam
 - Mark files that are not properly indexed with **(NOT INDEXED)**
 - Are automatically updated after each fix operation
 - Support Obsidian-style wiki links for markdown files (`[[filename]]`)
-
-## Testing
-
-ToDo: Put testing command here.
