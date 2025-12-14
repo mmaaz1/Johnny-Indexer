@@ -137,3 +137,7 @@ The system automatically generates Markdown index files (`Index of [DirectoryNam
 - Mark files that are not properly indexed with **(NOT INDEXED)**
 - Are automatically updated after each fix operation
 - Support Obsidian-style wiki links for markdown files (`[[filename]]`)
+
+
+## Resources
+- For development, check out `docs/development/DEVELOPMENT.md`

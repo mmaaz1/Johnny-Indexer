@@ -1,9 +1,16 @@
 import os
 import copy
 import sys
-from typing import List
+from typing import List, TYPE_CHECKING
 from utils.index.index_helper import IndexHelper as ih
 from functools import total_ordering
+
+# TODO: Refactor imports to eliminate circular dependency between File and IndexHelper
+# Currently, File imports IndexHelper, and IndexHelper imports types from index_format_config.
+# Consider moving index-related logic to a separate module or reorganizing the import structure.
+if TYPE_CHECKING:
+    from utils.index.index_format_config import ProperIndexType
+
 
 @total_ordering  # Automatically fills in all comparison methods
 class File:
@@ -79,8 +86,7 @@ class File:
     def index(self) -> str:
         return ih.get_index(self)
 
-    def index_type(self):  # type: ignore  # Returns ProperIndexType, but importing creates circular dependency
-        # TODO: Avoid circular import - consider refactoring index_helper imports
+    def index_type(self) -> "ProperIndexType":
         return ih.get_index_type(self)
 
     def is_indexed(self, proper) -> bool:
