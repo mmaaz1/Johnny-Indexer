@@ -42,16 +42,16 @@ Here is a sample cron job to fix indexes and create commit:
 
 The Johnny Indexer implements a hierarchical indexing system based on the Johnny Decimal methodology. Files are organized into a nested directory structure with specific index formats at each level.
 
-### Hierarchy Strategy
+### Hierarchy Format Strategy
 
 The system defines seven types of organization across 4 levels:
 
-1. **Area** (Level 0) - Represents the broadest category of information
+1. **Area** (Level 0) - ToDo
     - Format: `X0-X9` (e.g., `10-19`, `20-29`)
     - Parent: Area
     - Max: 10 areas per system
 
-2. **Category** (Level 1) - Provides subdivision within an area
+2. **Category** (Level 1) - ToDo
     - Format: `XY` (e.g., `11`, `12`, `23`)
     - Parent: Area
     - Max: 10 categories per area
@@ -61,22 +61,22 @@ The system defines seven types of organization across 4 levels:
     - Parent: Category
     - Max: 100 topics per category
 
-4. **Extension** (Level 3) - Allows organizing related content under a single topic
+4. **Extension** (Level 3) - ToDo
     - Format: `XX.XX+SUFF` (e.g., `11.05+DOCS`, `12.03+CODE`)
     - Parent: Topic
     - Max: Unlimited, but < 5 is preferred
 
-5. **Subtopic Type 1** (Level 3) - Creates numbered subdivisions within a topic
+5. **Subtopic Type 1** (Level 3) - ToDo
     - Format: `XX.XX-Y*` (e.g., `11.05-1`, `11.05-10`, `12.03-5`)
     - Parent: Topic
     - Max: 100 subtopics per topic
 
-6. **Subtopic Type 2** (Level 4) - Creates numbered subdivisions within an extension
+6. **Subtopic Type 2** (Level 4) - ToDo
     - Format: `XX.XX+SUFF-Y*` (e.g., `11.05+DOCS-1`, `12.03+CODE-15`)
     - Parent: Extension
     - Max: 100 subtopics per extension
 
-7. **The Rest** (Level 4+)
+7. **The Rest** (Level 4+) - ToDo
     - Format: `Y*` (e.g., `1`, `25`, `100`)
     - Parent: Subtopic Type 1 or Subtopic Type 2
     - Max: Unlimited
@@ -85,9 +85,15 @@ The system defines seven types of organization across 4 levels:
 
 ### Glossary
 
-1. **Proper Index**: ToDo
+1. **Proper Index**: A file that is indexed according to the format specifications for its hierarchy level
+    - Matches the exact regex pattern for its index type
+    - Has the correct separator between parent and main indexes
+    - Example: `12.01 My Topic` is a proper Topic index; `12.01.01 My Topic` is not
 
-1. **Improper Index**: ToDo
+1. **Improper Index**: A file with an index that exists but doesn't strictly follow the format specification
+    - Still uses a valid index structure, but may have extra suffixes or non-standard patterns
+    - Will be automatically corrected by the indexer to a proper format
+    - Example: `12.01.01 My Topic` is an improper Topic index (has extra `.01`); it will be corrected to `12.01 My Topic`
 
 1. **Parent Index**: The left-section of a file's index that determines under which section the file belongs to
     - Usually is either the index of the parent's directory, but for Areas its only a part of it
@@ -107,9 +113,13 @@ Files are processed using a breadth-first search (BFS) algorithm:
 
 1. **Initialize**: Start with all Area directories at Level 0
 2. **Collect Changes**: For each directory level:
-   - Scan all files in current level
-   - Compute expected index for each file based on sort order and parent (ToDo: Make this more concrete)
-   - Identify files that don't match expected index
+   - Scan all non-excluded files in current level
+   - Sort files alphabetically by filename
+   - Assign main indexes based on position in sorted list (0, 1, 2, ...) with zero-padding to match directory width
+   - For Topics, ensure main indexes always have 2 digits (e.g., `01`, `02`, `10`)
+   - For Extensions, preserve their alphabetic suffix (e.g., `+DOCS`, `+CODE`)
+   - Combine parent index + separator + main index to create expected full index
+   - Identify files where actual index doesn't match expected index
 3. **Sort & Present**: Sort proposed changes alphabetically by new filename
 4. **User Confirmation** (if enabled): Prompt user to accept (`y`) or reject (`n`) changes
 5. **Update Links** (if enabled):
