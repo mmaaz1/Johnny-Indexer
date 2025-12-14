@@ -1,7 +1,7 @@
 import os
 import copy
 import sys
-from typing import List, TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING
 from utils.index.index_helper import IndexHelper as ih
 from functools import total_ordering
 
@@ -83,7 +83,7 @@ class File:
 
 
     ### Index Functions
-    def index(self) -> str:
+    def index(self) -> Optional[str]:
         return ih.get_index(self)
 
     def index_type(self) -> "ProperIndexType":
@@ -132,14 +132,18 @@ class File:
         parent_file_index = float('inf')
         try:
             parent_file = file.get_parent()
-            parent_file_index = float(ih.get_index(parent_file))
-        except:
+            idx = ih.get_index(parent_file)
+            if idx is not None:
+                parent_file_index = float(idx)
+        except (ValueError, TypeError):
             pass
 
         main_index = float('inf')
         try:
-            main_index = float(ih.get_main_index(file))
-        except:
+            idx = ih.get_main_index(file)
+            if idx is not None:
+                main_index = float(idx)
+        except (ValueError, TypeError):
             pass
 
         creation_time = float('inf')
