@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "johnny-indexer"
+version = "0.1.0"
+description = "Johnny Indexer - Index management and fixing tool"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "pyyaml",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+
+[tool.pyright]
+typeCheckingMode = "basic"
+pythonVersion = "3.8"
+include = ["*.py", "utils/**/*.py", "tests/**/*.py"]
+exclude = ["**/__pycache__"]
+reportMissingTypeStubs = false
+reportUnusedImport = "warning"
+reportUnusedVariable = "warning"

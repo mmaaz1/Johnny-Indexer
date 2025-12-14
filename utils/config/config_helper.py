@@ -1,13 +1,14 @@
 import re
 import yaml
+from typing import Any
 from utils.file import File
 
 _CONFIG_FILE_NAME = "config.yaml"
 
 class ConfigHelper:
 
-    @staticmethod    
-    def load_from_config(key):
+    @staticmethod
+    def load_from_config(key: str) -> Any:
         config_path = File.from_name_and_path(_CONFIG_FILE_NAME, File.get_root_path())
 
         with open(config_path.get_abs_path(), 'r') as config_file:
@@ -17,9 +18,8 @@ class ConfigHelper:
 
         return config[key]
 
-
     @staticmethod
-    def excluded_from_indexing(file):
+    def excluded_from_indexing(file: File) -> bool:
         for prefix in ConfigHelper.load_from_config("prefixes_excluded_from_indexing"):
             if file.name.startswith(prefix):
                 return True
