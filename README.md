@@ -46,7 +46,7 @@ The Johnny Indexer implements a hierarchical indexing system based on the Johnny
 
 The system defines seven types of organization across 4 levels:
 
-1. **Area** (Level 0) - Represents broad organizational divisions of your life or expertise.
+1. **Area** (Level 0) - Groups broad organizational divisions of your life or expertise.
     - Format: `X0-X9` (e.g., `10-19`, `20-29`)
     - Parent: System Root
     - Max: 10 areas per system
@@ -61,7 +61,7 @@ The system defines seven types of organization across 4 levels:
     - Parent: Category
     - Max: 100 topics per category
 
-1. **Extension** (Level 3) - Groups Topics into specialized subdivisions
+1. **Extension** (Level 3) - Groups Topics further into specialized subdivisions
     - Format: `XX.XX+SUFF` (e.g., `11.05+DOCS`, `12.03+CODE`)
     - Parent: Topic
     - Max: Unlimited, but < 5 is preferred
