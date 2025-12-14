@@ -1,6 +1,10 @@
 from enum import Enum
 import copy
 import re
+from typing import Dict, List, Optional, Any, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from utils.file.file import File
 
 '''
 This file contains the source of truth for my index formatting system. What is a valid proper/improper area/category, etc.
@@ -125,10 +129,10 @@ class BaseIndexType(Enum):
     NOT_INDEXED = None
 
 class Proper:
-    def __init__(self, proper):
+    def __init__(self, proper: bool) -> None:
         self.proper = proper
-    
-    def __eq__(self, other):
+
+    def __eq__(self, other: Any) -> bool:
         if isinstance(other, bool):
             other_proper = other
         elif isinstance(other, Proper):
@@ -136,29 +140,30 @@ class Proper:
         else:
             raise ValueError("You shouldn't be comparing proper with others")
         return self.proper or (self.proper == other_proper)
-    
-    def __bool__(self):
+
+    def __bool__(self) -> bool:
         return self.proper
 
 class ProperIndexType:
-    def __init__(self, idx_type, proper):
+    def __init__(self, idx_type: BaseIndexType, proper: bool) -> None:
         self.idx_type = idx_type
         self.proper = Proper(proper)
-    
-    def is_indexed(self, proper):
+
+    def is_indexed(self, proper: bool) -> bool:
         return self != PROPER_NOT_INDEXED and self.proper == proper
 
-    def get_index_config(self):
+    def get_index_config(self) -> "_IndexConfigurator":
         if self == PROPER_NOT_INDEXED:
             raise ValueError("No configuration for Not Indexed files")
         it = self.idx_type.value
+        assert it is not None  # Guaranteed by the check above
         return _IndexConfigurator(self.proper, it["proper_index_patterns"], it["improper_index_patterns"], it["levels"], it["type"](), it["parents"](), it["separator"])
 
-    def __str__(self):
+    def __str__(self) -> str:
         proper_text = "proper" if self.proper else "improper"
         return f"'{self.idx_type} ({proper_text})'"
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, ProperIndexType):
             return False
         if not self.proper == other.proper:
@@ -166,7 +171,16 @@ class ProperIndexType:
         return self.idx_type == other.idx_type
 
 class _IndexConfigurator:
-    def __init__(self, proper, proper_index_patterns, improper_index_patterns, levels, index_type, parent_index_types, separator):
+    def __init__(
+        self,
+        proper: Proper,
+        proper_index_patterns: List[str],
+        improper_index_patterns: List[str],
+        levels: List[int],
+        index_type: BaseIndexType,
+        parent_index_types: List[BaseIndexType],
+        separator: str,
+    ) -> None:
         self._patterns = copy.deepcopy(proper_index_patterns)
         for pattern in improper_index_patterns:
             if not proper and pattern not in self._patterns:
@@ -176,8 +190,8 @@ class _IndexConfigurator:
         self._index_type = index_type
         self._parent_index_types = [ProperIndexType(parent_index_type, proper=True) for parent_index_type in parent_index_types]
         self._separator = separator
-    
-    def validate(self, file):
+
+    def validate(self, file: "File") -> bool:
         index = self._get_index_without_validation(file)
         if index is None:
             return False
@@ -188,55 +202,59 @@ class _IndexConfigurator:
 
         return any(re.match(pattern, index) for pattern in self._patterns)
 
-    def get_index(self, file):
+    def get_index(self, file: "File") -> Optional[str]:
         index = self._get_index_without_validation(file)
         if not self.validate(file):
             return None
         return index
-    
-    def get_parent_index(self, file):
+
+    def get_parent_index(self, file: "File") -> Optional[str]:
         return self._get_index_portions(file)['p_idx']
-    
-    def get_main_index(self, file):
+
+    def get_main_index(self, file: "File") -> Optional[str]:
         index_portion = self._get_index_portions(file)
         if index_portion['s_idx'] is None:
             return index_portion['m_idx']
         else:
             return f"{index_portion['m_idx']}.{index_portion['s_idx']}"
-        
-    def update_index_from_portions(self, file, parent_index, main_index):
+
+    def update_index_from_portions(self, file: "File", parent_index: str, main_index: str) -> None:
         new_index = parent_index + self._separator + main_index
         self.update_index(file, new_index)
-    
-    def update_index(self, file, new_index):
+
+    def update_index(self, file: "File", new_index: str) -> None:
         if self.validate(file):
             old_index = file.index()
+            assert old_index is not None  # Guaranteed by validate() returning True
             file.name = file.name.replace(old_index, new_index, 1)
         else:
             file.name = new_index + _INDEX_SEPARATOR + file.name
-        
+
         if not self.validate(file):
             raise ValueError(f"Only updating into proper indexes is supported. File: {file}")
-    
-    def _get_index_portions(self, file):
+
+    def _get_index_portions(self, file: "File") -> Dict[str, Optional[str]]:
         if not self.validate(file):
-            return (None, None)
-        
+            return {"p_idx": None, "m_idx": None, "s_idx": None}
+
         index = self.get_index(file)
+        assert index is not None  # Guaranteed by validate() returning True
         for pattern in self._patterns:
             match = re.compile(pattern).match(index)
             if not match:
                 continue
-            
+
             groups = match.groupdict()
             return {
                 'p_idx': groups.get('p_idx'),
                 'm_idx': groups.get('m_idx'),
                 's_idx': groups.get('s_idx')
             }
-    
-    def _get_index_without_validation(self, file):
-        return file.name.split(_INDEX_SEPARATOR)[0]
+        return {"p_idx": None, "m_idx": None, "s_idx": None}
+
+    def _get_index_without_validation(self, file: "File") -> Optional[str]:
+        parts = file.name.split(_INDEX_SEPARATOR)
+        return parts[0] if parts else None
 
 # Parents
 PROPER_NOT_INDEXED = ProperIndexType(BaseIndexType.NOT_INDEXED, proper = False)

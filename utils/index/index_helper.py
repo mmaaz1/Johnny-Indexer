@@ -1,5 +1,5 @@
-from typing import Optional, List, Any, TYPE_CHECKING
-from utils.index.index_format_config import ProperIndexType, BaseIndexType, PROPER_NOT_INDEXED
+from typing import Optional, List, TYPE_CHECKING
+from utils.index.index_format_config import ProperIndexType, BaseIndexType, PROPER_NOT_INDEXED, _IndexConfigurator
 
 if TYPE_CHECKING:
     from utils.file.file import File
@@ -135,5 +135,5 @@ class IndexHelper:
         return index_type.get_index_config().validate(file)
 
     @staticmethod
-    def _get_index_config_from_file(file: "File") -> Any:  # Returns _IndexConfigurator (typed in Phase 3)
+    def _get_index_config_from_file(file: "File") -> _IndexConfigurator:
         return file.index_type().get_index_config()
