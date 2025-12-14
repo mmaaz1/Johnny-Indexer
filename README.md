@@ -24,7 +24,6 @@ The Johnny Indexer is a Python-based tool designed to automate the indexing of f
 
 In your knowledge base, manually create the Area indexes with the format `X0-X9`. All files and directories within the areas will be indexed by this script.
 
-
 ## Usage
 
 To fix and generate indexes for files in a directory, run:
@@ -43,7 +42,7 @@ Here is a sample cron job to fix indexes and create commit:
 
 The Johnny Indexer implements a hierarchical indexing system based on the Johnny Decimal methodology. Files are organized into a nested directory structure with specific index formats at each level.
 
-### Hierarchy Levels
+### Hierarchy Strategy
 
 The system defines seven types of organization across 4 levels:
 
@@ -82,41 +81,45 @@ The system defines seven types of organization across 4 levels:
     - Parent: Subtopic Type 1 or Subtopic Type 2
     - Max: Unlimited
 
-### Index Format Rules
+## Development
 
-- **Proper vs. Improper**: The system distinguishes between properly formatted indexes (as defined above) and improperly formatted indexes. Files with improper indexes are still recognized but marked for correction.
-- **Padding**: Main indexes are padded with leading zeros to maintain uniform length within a directory (e.g., `01`, `02`, `10`).
-- **Topic Padding**: Topics always use two-digit main indexes regardless of count (e.g., `11.01`, `11.02`).
+### Glossary
 
-### Index Computation Algorithm
+1. **Proper Index**: ToDo
 
-When fixing indexes, the system computes two portions:
+1. **Improper Index**: ToDo
 
-1. **Parent Index**: Extracted from the parent directory's index
-   - For files under an Area, parent index is the area's main index
-   - For files under a Subtopic, parent index is empty
-   - For files under other indexed items, parent index is the parent's full index
+1. **Parent Index**: The left-section of a file's index that determines under which section the file belongs to
+    - Usually is either the index of the parent's directory, but for Areas its only a part of it
 
-2. **Main Index**: Assigned sequentially to siblings
-   - Files in a directory are sorted alphabetically
-   - Each file receives an index based on its position (0, 1, 2, ...)
-   - The index is padded to match the number of siblings in the directory
+1. **Main Index**: The right-section of a file's index that determines the ordering of the file among its siblings 
 
-3. **Final Index**: Constructed by combining parent and main indexes with the appropriate separator
+1. **Separator**: The set of characters used to separate the parent index and the main index
+    - Generally, these are '-', '.' or ''.
 
-### Directory Processing
+4. **Final Index**: Constructed by combining parent and main indexes with the appropriate separator
+
+**Example**: In a Topic `12.34`, `12` is the parent index, `34` is the main index, and `.` is the separator
+
+### Index Fixing Workflow
 
 Files are processed using a breadth-first search (BFS) algorithm:
 
-1. Start with all Area directories
-2. For each directory level, collect all files and proposed changes
-3. Sort proposed changes alphabetically by new file name
-4. Prompt user for confirmation of each change (if enabled)
-5. Update weblinks in other files if linking is enabled (if enabled)
-6. Apply the file rename
-7. Process the next level of directories
+1. **Initialize**: Start with all Area directories at Level 0
+2. **Collect Changes**: For each directory level:
+   - Scan all files in current level
+   - Compute expected index for each file based on sort order and parent (ToDo: Make this more concrete)
+   - Identify files that don't match expected index
+3. **Sort & Present**: Sort proposed changes alphabetically by new filename
+4. **User Confirmation** (if enabled): Prompt user to accept (`y`) or reject (`n`) changes
+5. **Update Links** (if enabled):
+   - Search all files in the directory tree for references to the old filename
+   - Update any found links to point to the new filename
+6. **Apply Rename**: Rename the file on disk
+7. **Recurse**: Move to the next directory level and repeat from step 2
+8. **Generate JDex**: After all renames complete, regenerate index files
 
-### JDex File Genration
+### JDex File Generation
 
 The system automatically generates Markdown index files (`Index of [DirectoryName].md`) at the root and in each Area. These files:
 
