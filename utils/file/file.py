@@ -50,7 +50,7 @@ class File:
         dir_path = os.path.dirname(abs_path)
         return cls.from_name_and_path(name, dir_path, level)
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: object, **kwargs: object) -> None:
         raise TypeError("Cannot instantiate directly. Use from_abs_path or from_name_and_path methods.")
 
     def create_copy(self) -> "File":
@@ -66,7 +66,7 @@ class File:
         return File.from_name_and_path(parent_dir_name, parent_path, self.level - 1)
 
     def get_children(self) -> List["File"]:
-        child_files = []
+        child_files: List["File"] = []
         for child_file_name in os.listdir(self.get_abs_path()):
             child_file = File.from_name_and_path(child_file_name, self.get_abs_path(), self.level + 1)
             child_files.append(child_file)
@@ -89,7 +89,7 @@ class File:
     def index_type(self) -> "ProperIndexType":
         return ih.get_index_type(self)
 
-    def is_indexed(self, proper) -> bool:
+    def is_indexed(self, proper: bool) -> bool:
         return ih.is_index(self, proper)
     
 
@@ -128,7 +128,7 @@ class File:
         self.copy_from(new_file)
 
     @staticmethod
-    def index_sort_key(file: "File") -> tuple:
+    def index_sort_key(file: "File") -> tuple[float, float, float]:
         parent_file_index = float('inf')
         try:
             parent_file = file.get_parent()

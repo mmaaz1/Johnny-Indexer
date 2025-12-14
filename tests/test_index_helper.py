@@ -197,15 +197,17 @@ def test_is_extension(test_inputs: OuterTestInputs, validity_type: str, proper: 
 def test_is_subtopic_1(test_inputs: OuterTestInputs, validity_type: str, proper: bool, expected: bool) -> None:
     """Test subtopic 1 validation"""
     subtopic_1_files = getattr(test_inputs.subtopics_1, validity_type)
-    _test_file_indexing(subtopic_1_files, ih._is_subtopic_1, proper, expected)
-    _test_excluded_indexes(test_inputs, "subtopics_1", ih._is_subtopic_1)
+    # type: ignore[attr-defined] - _is_subtopic_1 is internal but needed for testing
+    _test_file_indexing(subtopic_1_files, ih._is_subtopic_1, proper, expected)  # type: ignore[attr-defined]
+    _test_excluded_indexes(test_inputs, "subtopics_1", ih._is_subtopic_1)  # type: ignore[attr-defined]
 
 @pytest.mark.parametrize("validity_type,proper,expected", EXPECTATION_MATRIX)
 def test_is_subtopic_2(test_inputs: OuterTestInputs, validity_type: str, proper: bool, expected: bool) -> None:
     """Test subtopic 2 validation"""
     subtopic_2_files = getattr(test_inputs.subtopics_2, validity_type)
-    _test_file_indexing(subtopic_2_files, ih._is_subtopic_2, proper, expected)
-    _test_excluded_indexes(test_inputs, "subtopics_2", ih._is_subtopic_2)
+    # type: ignore[attr-defined] - _is_subtopic_2 is internal but needed for testing
+    _test_file_indexing(subtopic_2_files, ih._is_subtopic_2, proper, expected)  # type: ignore[attr-defined]
+    _test_excluded_indexes(test_inputs, "subtopics_2", ih._is_subtopic_2)  # type: ignore[attr-defined]
 
 # @pytest.mark.parametrize("validity_type,proper,expected", [
 #     ("areas", "proper", True, True),

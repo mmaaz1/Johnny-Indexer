@@ -7,7 +7,7 @@ name = "johnny-indexer"
 version = "0.1.0"
 description = "Johnny Indexer - Index management and fixing tool"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
     "pyyaml",
 ]
@@ -17,8 +17,8 @@ testpaths = ["tests"]
 python_files = "test_*.py"
 
 [tool.pyright]
-typeCheckingMode = "basic"
-pythonVersion = "3.8"
+typeCheckingMode = "strict"
+pythonVersion = "3.9"
 include = ["*.py", "utils/**/*.py", "tests/**/*.py"]
 exclude = ["**/__pycache__"]
 reportMissingTypeStubs = false
@@ -27,3 +27,6 @@ reportUnusedVariable = "error"
 reportOptionalMemberAccess = "error"
 reportOptionalSubscript = "error"
 reportGeneralTypeIssues = "error"
+reportMissingParameterType = "error"
+reportUnknownParameterType = "error"
+reportPrivateUsage = "warning"

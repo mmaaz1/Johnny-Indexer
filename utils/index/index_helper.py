@@ -34,13 +34,13 @@ class IndexHelper:
         return PROPER_NOT_INDEXED
     
     @staticmethod
-    def _get_all_index_configs(proper: Optional[bool] = None) -> list:
+    def _get_all_index_configs(proper: Optional[bool] = None) -> List["_IndexConfigurator"]:
         if proper is None:
             propers = [True, False]
         else:
             propers = [proper]
 
-        all_index_types = []
+        all_index_types: List["_IndexConfigurator"] = []
         for proper in propers:
             for index_type in BaseIndexType:
                 if index_type == BaseIndexType.NOT_INDEXED:
@@ -115,7 +115,7 @@ class IndexHelper:
 
     @staticmethod
     def get_areas_in_dir(file: "File") -> List["File"]:
-        areas = []
+        areas: List["File"] = []
         for child_file in file.get_children():
             if IndexHelper.is_area(child_file, proper=True):
                 areas.append(child_file)
