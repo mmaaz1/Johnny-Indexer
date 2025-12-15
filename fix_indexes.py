@@ -103,7 +103,9 @@ def bfs_fix_indexes(root_file: File, area_files: list[File]) -> None:
 
         # Batch update weblinks for all changes at once, after all renames applied
         if ch.load_from_config("fix_weblinks") and proposed_changes:
-            file_changes = {proposal.old_file: proposal.new_file for proposal in proposed_changes}
+            file_changes = {
+                proposal.old_file: proposal.new_file for proposal in proposed_changes
+            }
             of.update_weblinks_batch(root_file, file_changes)
 
 

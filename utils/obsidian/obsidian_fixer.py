@@ -83,7 +83,9 @@ class ObsidianFixer:
             print(f"Updated references of {old_file_ref.name} in: {file}")
 
     @staticmethod
-    def _update_weblinks_for_file_batch(file: File, file_changes: dict[File, File]) -> None:
+    def _update_weblinks_for_file_batch(
+        file: File, file_changes: dict[File, File]
+    ) -> None:
         """
         Updates wiki-style links in a single file for all pending renames.
         This applies all replacements in a single regex pass instead of multiple passes.
