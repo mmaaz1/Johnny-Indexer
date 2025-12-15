@@ -57,10 +57,10 @@
   - [x] Type BaseIndexType enum (complex with dict values)
   - [x] Type Proper class with custom equality logic
   - [x] Type ProperIndexType class
-  - [x] Type _IndexConfigurator class (main configuration handler)
+  - [x] Type IndexConfigurator class (main configuration handler)
   - [x] Handle None cases from enum (NOT_INDEXED = None)
   - [x] Use assertions to narrow types where validate() guarantees non-None
-  - [x] Fixed circular import: IndexHelper now imports _IndexConfigurator directly
+  - [x] Fixed circular import: IndexHelper now imports IndexConfigurator directly
   - [x] All checks pass: 0 errors, 0 warnings
 
 - [x] **Type `ObsidianFixer`** (`utils/obsidian/obsidian_fixer.py`)
