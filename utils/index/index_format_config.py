@@ -2,7 +2,7 @@ from enum import Enum
 from dataclasses import dataclass
 import copy
 import re
-from typing import Dict, List, Optional, Any, TYPE_CHECKING, Callable
+from typing import Dict, List, Optional, TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
     from utils.file.file import File
@@ -128,7 +128,7 @@ class Proper:
     def __init__(self, proper: bool) -> None:
         self.proper = proper
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, bool):
             other_proper = other
         elif isinstance(other, Proper):
@@ -158,7 +158,7 @@ class ProperIndexType:
         proper_text = "proper" if self.proper else "improper"
         return f"'{self.idx_type} ({proper_text})'"
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, ProperIndexType):
             return False
         if not self.proper == other.proper:
