@@ -1,8 +1,5 @@
 ## Development Experience 
-- [f] Static Type Checking
-- [!] Code Formatting and Linting
-- [ ] class docs for all classes.
-- [ ] Doc Generation
+- [ ] Class docs for all classes and automatic doc generation.
 - [ ] Unit tests and coverage
 
 ## Features

@@ -91,6 +91,7 @@ def bfs_fix_indexes(root_file: File, area_files: list[File]) -> None:
                     proposed_changes.append(proposal)
 
         proposed_changes.sort(key=lambda proposal: proposal.new_file)
+
         for proposal in proposed_changes:
             old_file = proposal.old_file
             new_file = proposal.new_file
@@ -98,10 +99,12 @@ def bfs_fix_indexes(root_file: File, area_files: list[File]) -> None:
             if ch.load_from_config("prompt_for_approval"):
                 prompt_user(old_file, new_file)
 
-            if ch.load_from_config("fix_weblinks"):
-                of.update_weblinks(root_file, old_file, new_file)
-
             old_file.rename(new_file)
+
+        # Batch update weblinks for all changes at once, after all renames applied
+        if ch.load_from_config("fix_weblinks") and proposed_changes:
+            file_changes = {proposal.old_file: proposal.new_file for proposal in proposed_changes}
+            of.update_weblinks_batch(root_file, file_changes)
 
 
 def main() -> None:
