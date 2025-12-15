@@ -1,7 +1,7 @@
 ## Development Experience 
 - [x] Static Type Checking
 - [x] Code Formatting and Linting
-- [ ] Class docs for all classes and automatic doc generation.
+- [f] Class docs for all classes and automatic doc generation.
 - [ ] Unit tests and coverage
 
 ## Features
@@ -10,7 +10,7 @@
         If validation fails, report in a file
 - [!] Obsidian weblink fixer doesn't Doesn't handle inline references like `[link text](filename.md)`. Check if this should be handled
 - [x] No conflict detection when renaming. We can accidentally lose a file.
-- [!] Summary report for when unexpected things happen
+- [f] Summary report for when unexpected things happen
 - [ ] Dry Run Mode - Users cannot preview all changes without applying them. Current workflow is to commit changes through git then run script.
 
 ### Daily Committer

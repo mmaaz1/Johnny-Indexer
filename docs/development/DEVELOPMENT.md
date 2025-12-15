@@ -23,9 +23,3 @@ Format code and fix linting issues:
 ```bash
 make format
 ```
-
-View available commands:
-
-```bash
-make help
-```
