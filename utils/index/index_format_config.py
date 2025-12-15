@@ -1,70 +1,77 @@
-from enum import Enum
-from dataclasses import dataclass
 import copy
 import re
-from typing import Dict, List, Optional, TYPE_CHECKING, Callable
+from collections.abc import Callable
+from dataclasses import dataclass
+from enum import Enum
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from utils.file.file import File
 
-'''
+"""
 This file contains the source of truth for my index formatting system. What is a valid proper/improper area/category, etc.
-'''
+"""
 
 
 @dataclass(frozen=True)
 class IndexTypeConfig:
     """Configuration for an index type"""
-    proper_index_patterns: List[str]
-    improper_index_patterns: List[str]
-    levels: List[int]
-    parents: Callable[[], List['BaseIndexType']]
+
+    proper_index_patterns: list[str]
+    improper_index_patterns: list[str]
+    levels: list[int]
+    parents: Callable[[], list["BaseIndexType"]]
     separator: str
+
 
 # Separators between parents and main indexes
 _INDEX_SEPARATOR = " "
 
 # Regex patterns for index formats
-_WILDCARD_INDEX_PATTERN = r'^(?P<m_idx>[0-9]+)$'
-_IMPROPER_WILDCARD_INDEX_PATTERN = r'^(?P<m_idx>[0-9]+)\.(?P<s_idx>[0-9]+)$'
+_WILDCARD_INDEX_PATTERN = r"^(?P<m_idx>[0-9]+)$"
+_IMPROPER_WILDCARD_INDEX_PATTERN = r"^(?P<m_idx>[0-9]+)\.(?P<s_idx>[0-9]+)$"
 
-_AREA_INDEX_PATTERN = r'^(?P<m_idx>[0-9])0-\1[9]$'
-_IMPROPER_AREA_INDEX_PATTERN = r'^(?P<m_idx>[0-9])0-\1[9]\.(?P<s_idx>[0-9]+)$'
+_AREA_INDEX_PATTERN = r"^(?P<m_idx>[0-9])0-\1[9]$"
+_IMPROPER_AREA_INDEX_PATTERN = r"^(?P<m_idx>[0-9])0-\1[9]\.(?P<s_idx>[0-9]+)$"
 
-_CATEGORY_INDEX_PATTERN = r'^(?P<p_idx>[0-9])(?P<m_idx>[0-9])$'
-_IMPROPER_CATEGORY_INDEX_PATTERN = r'^(?P<p_idx>[0-9])(?P<m_idx>[0-9])\.(?P<s_idx>[0-9]+)$'
+_CATEGORY_INDEX_PATTERN = r"^(?P<p_idx>[0-9])(?P<m_idx>[0-9])$"
+_IMPROPER_CATEGORY_INDEX_PATTERN = (
+    r"^(?P<p_idx>[0-9])(?P<m_idx>[0-9])\.(?P<s_idx>[0-9]+)$"
+)
 
-_TOPIC_INDEX_PATTERN = r'^(?P<p_idx>[0-9]{2})\.(?P<m_idx>[0-9]{2})$'
-_IMPROPER_TOPIC_INDEX_PATTERN = r'^(?P<p_idx>[0-9]{2})\.(?P<m_idx>[0-9]{2,})\.(?P<s_idx>[0-9]+)$'
+_TOPIC_INDEX_PATTERN = r"^(?P<p_idx>[0-9]{2})\.(?P<m_idx>[0-9]{2})$"
+_IMPROPER_TOPIC_INDEX_PATTERN = (
+    r"^(?P<p_idx>[0-9]{2})\.(?P<m_idx>[0-9]{2,})\.(?P<s_idx>[0-9]+)$"
+)
 
 # Extensions are not sorted so no need for improper
-_EXTENSION_INDEX_PATTERN = r'^(?P<p_idx>[0-9]{2}\.[0-9]{2})\+(?P<m_idx>[A-Z]+)$'
+_EXTENSION_INDEX_PATTERN = r"^(?P<p_idx>[0-9]{2}\.[0-9]{2})\+(?P<m_idx>[A-Z]+)$"
 
-_SUPTOPIC_INDEX_PATTERN_1 = r'^(?P<p_idx>[0-9]{2}\.[0-9]{2})-(?P<m_idx>[0-9]+)$'
-_IMPROPER_SUPTOPIC_INDEX_PATTERN_1 = r'^(?P<p_idx>[0-9]{2}\.[0-9]{2})-(?P<m_idx>[0-9]+)\.(?P<s_idx>[0-9]+)$'
+_SUPTOPIC_INDEX_PATTERN_1 = r"^(?P<p_idx>[0-9]{2}\.[0-9]{2})-(?P<m_idx>[0-9]+)$"
+_IMPROPER_SUPTOPIC_INDEX_PATTERN_1 = (
+    r"^(?P<p_idx>[0-9]{2}\.[0-9]{2})-(?P<m_idx>[0-9]+)\.(?P<s_idx>[0-9]+)$"
+)
 
-_SUBTOPIC_INDEX_PATTERN_2 = r'^(?P<p_idx>[0-9]{2}\.[0-9]{2}\+[A-Z]+)-(?P<m_idx>[0-9]+)$'
-_IMPROPER_SUBTOPIC_INDEX_PATTERN_2 = r'^(?P<p_idx>[0-9]{2}\.[0-9]{2}\+[A-Z]+)-(?P<m_idx>[0-9]+)\.(?P<s_idx>[0-9]+)$'
+_SUBTOPIC_INDEX_PATTERN_2 = r"^(?P<p_idx>[0-9]{2}\.[0-9]{2}\+[A-Z]+)-(?P<m_idx>[0-9]+)$"
+_IMPROPER_SUBTOPIC_INDEX_PATTERN_2 = (
+    r"^(?P<p_idx>[0-9]{2}\.[0-9]{2}\+[A-Z]+)-(?P<m_idx>[0-9]+)\.(?P<s_idx>[0-9]+)$"
+)
 
 _IMPROPER_INDEX_PATTERNS = [
-    _AREA_INDEX_PATTERN,                    # Y0-Y9
-    _IMPROPER_AREA_INDEX_PATTERN,           # Y0-Y9.S*
-    
-    _CATEGORY_INDEX_PATTERN,                # XY
-    _IMPROPER_CATEGORY_INDEX_PATTERN,       # XY.S*
-
-    _TOPIC_INDEX_PATTERN,                   # XX.YY
-    _IMPROPER_TOPIC_INDEX_PATTERN,          # XX.YY.S*
-    
-    _SUPTOPIC_INDEX_PATTERN_1,              # XX.XX-Y*
-    _IMPROPER_SUPTOPIC_INDEX_PATTERN_1,     # XX.XX-Y*.S*
-
-    _SUBTOPIC_INDEX_PATTERN_2,              # XX.XX+SUFF-Y*
-    _IMPROPER_SUBTOPIC_INDEX_PATTERN_2,     # XX.XX+SUFF-Y*.S*
-
-    _WILDCARD_INDEX_PATTERN,                # Y*
-    _IMPROPER_WILDCARD_INDEX_PATTERN,       # Y*.S*
+    _AREA_INDEX_PATTERN,  # Y0-Y9
+    _IMPROPER_AREA_INDEX_PATTERN,  # Y0-Y9.S*
+    _CATEGORY_INDEX_PATTERN,  # XY
+    _IMPROPER_CATEGORY_INDEX_PATTERN,  # XY.S*
+    _TOPIC_INDEX_PATTERN,  # XX.YY
+    _IMPROPER_TOPIC_INDEX_PATTERN,  # XX.YY.S*
+    _SUPTOPIC_INDEX_PATTERN_1,  # XX.XX-Y*
+    _IMPROPER_SUPTOPIC_INDEX_PATTERN_1,  # XX.XX-Y*.S*
+    _SUBTOPIC_INDEX_PATTERN_2,  # XX.XX+SUFF-Y*
+    _IMPROPER_SUBTOPIC_INDEX_PATTERN_2,  # XX.XX+SUFF-Y*.S*
+    _WILDCARD_INDEX_PATTERN,  # Y*
+    _IMPROPER_WILDCARD_INDEX_PATTERN,  # Y*.S*
 ]
+
 
 class BaseIndexType(Enum):
     AREA = IndexTypeConfig(
@@ -72,57 +79,58 @@ class BaseIndexType(Enum):
         improper_index_patterns=_IMPROPER_INDEX_PATTERNS,
         levels=[0],
         parents=lambda: [BaseIndexType.NOT_INDEXED],
-        separator=""
+        separator="",
     )
     CATEGORY = IndexTypeConfig(
         proper_index_patterns=[_CATEGORY_INDEX_PATTERN],
         improper_index_patterns=_IMPROPER_INDEX_PATTERNS,
         levels=[1],
         parents=lambda: [BaseIndexType.AREA],
-        separator=""
+        separator="",
     )
     TOPIC = IndexTypeConfig(
         proper_index_patterns=[_TOPIC_INDEX_PATTERN],
         improper_index_patterns=_IMPROPER_INDEX_PATTERNS,
         levels=[2],
         parents=lambda: [BaseIndexType.CATEGORY],
-        separator="."
+        separator=".",
     )
     EXTENSION = IndexTypeConfig(
         proper_index_patterns=[_EXTENSION_INDEX_PATTERN],
         improper_index_patterns=[],
         levels=[3],
         parents=lambda: [BaseIndexType.TOPIC],
-        separator="+"
+        separator="+",
     )
     SUBTOPIC_1 = IndexTypeConfig(
         proper_index_patterns=[_SUPTOPIC_INDEX_PATTERN_1],
         improper_index_patterns=_IMPROPER_INDEX_PATTERNS,
         levels=[3],
         parents=lambda: [BaseIndexType.TOPIC],
-        separator="-"
+        separator="-",
     )
     SUBTOPIC_2 = IndexTypeConfig(
         proper_index_patterns=[_SUBTOPIC_INDEX_PATTERN_2],
         improper_index_patterns=_IMPROPER_INDEX_PATTERNS,
         levels=[4],
         parents=lambda: [BaseIndexType.EXTENSION],
-        separator="-"
+        separator="-",
     )
     THE_REST = IndexTypeConfig(
         proper_index_patterns=[_WILDCARD_INDEX_PATTERN],
         improper_index_patterns=_IMPROPER_INDEX_PATTERNS,
         levels=[4, 5, 6, 7, 8, 9, 10],
         parents=lambda: [BaseIndexType.SUBTOPIC_1, BaseIndexType.SUBTOPIC_2],
-        separator=""
+        separator="",
     )
     NOT_INDEXED = IndexTypeConfig(
         proper_index_patterns=[],
         improper_index_patterns=[],
         levels=[],
         parents=lambda: [],
-        separator=""
+        separator="",
     )
+
 
 class Proper:
     def __init__(self, proper: bool) -> None:
@@ -140,6 +148,7 @@ class Proper:
     def __bool__(self) -> bool:
         return self.proper
 
+
 class ProperIndexType:
     def __init__(self, idx_type: BaseIndexType, proper: bool) -> None:
         self.idx_type = idx_type
@@ -152,7 +161,15 @@ class ProperIndexType:
         if self == PROPER_NOT_INDEXED:
             raise ValueError("No configuration for Not Indexed files")
         config = self.idx_type.value
-        return IndexConfigurator(self.proper, config.proper_index_patterns, config.improper_index_patterns, config.levels, self.idx_type, config.parents(), config.separator)
+        return IndexConfigurator(
+            self.proper,
+            config.proper_index_patterns,
+            config.improper_index_patterns,
+            config.levels,
+            self.idx_type,
+            config.parents(),
+            config.separator,
+        )
 
     def __str__(self) -> str:
         proper_text = "proper" if self.proper else "improper"
@@ -165,15 +182,16 @@ class ProperIndexType:
             return False
         return self.idx_type == other.idx_type
 
+
 class IndexConfigurator:
     def __init__(
         self,
         proper: Proper,
-        proper_index_patterns: List[str],
-        improper_index_patterns: List[str],
-        levels: List[int],
+        proper_index_patterns: list[str],
+        improper_index_patterns: list[str],
+        levels: list[int],
         index_type: BaseIndexType,
-        parent_index_types: List[BaseIndexType],
+        parent_index_types: list[BaseIndexType],
         separator: str,
     ) -> None:
         self._patterns = copy.deepcopy(proper_index_patterns)
@@ -183,7 +201,10 @@ class IndexConfigurator:
 
         self._levels = levels
         self._index_type = index_type
-        self._parent_index_types = [ProperIndexType(parent_index_type, proper=True) for parent_index_type in parent_index_types]
+        self._parent_index_types = [
+            ProperIndexType(parent_index_type, proper=True)
+            for parent_index_type in parent_index_types
+        ]
         self._separator = separator
 
     def validate(self, file: "File") -> bool:
@@ -197,23 +218,25 @@ class IndexConfigurator:
 
         return any(re.match(pattern, index) for pattern in self._patterns)
 
-    def get_index(self, file: "File") -> Optional[str]:
+    def get_index(self, file: "File") -> str | None:
         index = self._get_index_without_validation(file)
         if not self.validate(file):
             return None
         return index
 
-    def get_parent_index(self, file: "File") -> Optional[str]:
-        return self._get_index_portions(file)['p_idx']
+    def get_parent_index(self, file: "File") -> str | None:
+        return self._get_index_portions(file)["p_idx"]
 
-    def get_main_index(self, file: "File") -> Optional[str]:
+    def get_main_index(self, file: "File") -> str | None:
         index_portion = self._get_index_portions(file)
-        if index_portion['s_idx'] is None:
-            return index_portion['m_idx']
+        if index_portion["s_idx"] is None:
+            return index_portion["m_idx"]
         else:
             return f"{index_portion['m_idx']}.{index_portion['s_idx']}"
 
-    def update_index_from_portions(self, file: "File", parent_index: str, main_index: str) -> None:
+    def update_index_from_portions(
+        self, file: "File", parent_index: str, main_index: str
+    ) -> None:
         new_index = parent_index + self._separator + main_index
         self.update_index(file, new_index)
 
@@ -226,9 +249,11 @@ class IndexConfigurator:
             file.name = new_index + _INDEX_SEPARATOR + file.name
 
         if not self.validate(file):
-            raise ValueError(f"Only updating into proper indexes is supported. File: {file}")
+            raise ValueError(
+                f"Only updating into proper indexes is supported. File: {file}"
+            )
 
-    def _get_index_portions(self, file: "File") -> Dict[str, Optional[str]]:
+    def _get_index_portions(self, file: "File") -> dict[str, str | None]:
         if not self.validate(file):
             return {"p_idx": None, "m_idx": None, "s_idx": None}
 
@@ -241,15 +266,16 @@ class IndexConfigurator:
 
             groups = match.groupdict()
             return {
-                'p_idx': groups.get('p_idx'),
-                'm_idx': groups.get('m_idx'),
-                's_idx': groups.get('s_idx')
+                "p_idx": groups.get("p_idx"),
+                "m_idx": groups.get("m_idx"),
+                "s_idx": groups.get("s_idx"),
             }
         return {"p_idx": None, "m_idx": None, "s_idx": None}
 
-    def _get_index_without_validation(self, file: "File") -> Optional[str]:
+    def _get_index_without_validation(self, file: "File") -> str | None:
         parts = file.name.split(_INDEX_SEPARATOR)
         return parts[0] if parts else None
 
+
 # Parents
-PROPER_NOT_INDEXED = ProperIndexType(BaseIndexType.NOT_INDEXED, proper = False)
+PROPER_NOT_INDEXED = ProperIndexType(BaseIndexType.NOT_INDEXED, proper=False)

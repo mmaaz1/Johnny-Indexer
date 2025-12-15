@@ -1,9 +1,10 @@
-import os
 import copy
+import os
 import sys
-from typing import List, Optional, TYPE_CHECKING
-from utils.index.index_helper import IndexHelper as ih
 from functools import total_ordering
+from typing import TYPE_CHECKING
+
+from utils.index.index_helper import IndexHelper as ih
 
 # TODO: Refactor imports to eliminate circular dependency between File and IndexHelper
 # Currently, File imports IndexHelper, and IndexHelper imports types from index_format_config.
@@ -14,9 +15,10 @@ if TYPE_CHECKING:
 
 @total_ordering  # Automatically fills in all comparison methods
 class File:
-    '''
+    """
     This class contains information about a file and its index, or the lack thereof.
-    '''
+    """
+
     name: str
     dir_path: str
     level: int
@@ -37,7 +39,9 @@ class File:
         instance.level = level
 
         if not os.path.isabs(instance.get_abs_path()):
-            raise ValueError(f"The resulting path '{instance.get_abs_path()}' is not an absolute path.")
+            raise ValueError(
+                f"The resulting path '{instance.get_abs_path()}' is not an absolute path."
+            )
         return instance
 
     @classmethod
@@ -51,7 +55,9 @@ class File:
         return cls.from_name_and_path(name, dir_path, level)
 
     def __init__(self, *args: object, **kwargs: object) -> None:
-        raise TypeError("Cannot instantiate directly. Use from_abs_path or from_name_and_path methods.")
+        raise TypeError(
+            "Cannot instantiate directly. Use from_abs_path or from_name_and_path methods."
+        )
 
     def create_copy(self) -> "File":
         return copy.deepcopy(self)
@@ -65,25 +71,25 @@ class File:
         parent_path = os.path.dirname(os.path.abspath(self.dir_path))
         return File.from_name_and_path(parent_dir_name, parent_path, self.level - 1)
 
-    def get_children(self) -> List["File"]:
-        child_files: List["File"] = []
+    def get_children(self) -> list["File"]:
+        child_files: list[File] = []
         for child_file_name in os.listdir(self.get_abs_path()):
-            child_file = File.from_name_and_path(child_file_name, self.get_abs_path(), self.level + 1)
+            child_file = File.from_name_and_path(
+                child_file_name, self.get_abs_path(), self.level + 1
+            )
             child_files.append(child_file)
 
         return sorted(child_files)
 
-    def get_siblings(self) -> List["File"]:
+    def get_siblings(self) -> list["File"]:
         return sorted(self.get_parent().get_children())
-    
 
     ### Copy Functions
     def copy_from(self, other_file: "File") -> None:
         self.__dict__.update(other_file.__dict__)
 
-
     ### Index Functions
-    def index(self) -> Optional[str]:
+    def index(self) -> str | None:
         return ih.get_index(self)
 
     def index_type(self) -> "ProperIndexType":
@@ -91,7 +97,6 @@ class File:
 
     def is_indexed(self, proper: bool) -> bool:
         return ih.is_index(self, proper)
-    
 
     ### Getters
     def get_abs_path(self) -> str:
@@ -115,7 +120,7 @@ class File:
 
     def exists(self) -> bool:
         return os.path.exists(self.get_abs_path())
-    
+
     ### File Modification Functions
     def delete(self) -> None:
         if self.is_file():
@@ -129,7 +134,7 @@ class File:
 
     @staticmethod
     def index_sort_key(file: "File") -> tuple[float, float, float]:
-        parent_file_index = float('inf')
+        parent_file_index = float("inf")
         try:
             parent_file = file.get_parent()
             idx = ih.get_index(parent_file)
@@ -138,7 +143,7 @@ class File:
         except (ValueError, TypeError):
             pass
 
-        main_index = float('inf')
+        main_index = float("inf")
         try:
             idx = ih.get_main_index(file)
             if idx is not None:
@@ -146,12 +151,11 @@ class File:
         except (ValueError, TypeError):
             pass
 
-        creation_time = float('inf')
+        creation_time = float("inf")
         if file.exists():
             creation_time = file.get_creation_time()
 
         return (parent_file_index, main_index, creation_time)
-            
 
     ### Class functions
     def __eq__(self, other: object) -> bool:

@@ -1,23 +1,30 @@
-from typing import Optional, List, TYPE_CHECKING
-from utils.index.index_format_config import ProperIndexType, BaseIndexType, PROPER_NOT_INDEXED, IndexConfigurator
+from typing import TYPE_CHECKING
+
+from utils.index.index_format_config import (
+    PROPER_NOT_INDEXED,
+    BaseIndexType,
+    IndexConfigurator,
+    ProperIndexType,
+)
 
 if TYPE_CHECKING:
     from utils.file.file import File
 
+
 class IndexHelper:
-    '''
+    """
     This class serves as a layer of abstraction on top of IndexConfigs. It holds functions related to index
-    '''
+    """
 
     @staticmethod
     def is_index(file: "File", proper: bool) -> bool:
-        ''' Checks if the file is indexed. Set proper to True to validate that the script correctly set the index.
+        """Checks if the file is indexed. Set proper to True to validate that the script correctly set the index.
         Set proper to false to check if a file is eligible to for indexing. This has less restrictions in the validation.
-        '''
+        """
         return IndexHelper.get_index_type(file).is_indexed(proper)
 
     @staticmethod
-    def get_index(file: "File") -> Optional[str]:
+    def get_index(file: "File") -> str | None:
         return IndexHelper._get_index_config_from_file(file).get_index(file)
 
     @staticmethod
@@ -32,29 +39,33 @@ class IndexHelper:
                     return index_type
 
         return PROPER_NOT_INDEXED
-    
+
     @staticmethod
-    def _get_all_index_configs(proper: Optional[bool] = None) -> List["IndexConfigurator"]:
+    def _get_all_index_configs(proper: bool | None = None) -> list["IndexConfigurator"]:
         if proper is None:
             propers = [True, False]
         else:
             propers = [proper]
 
-        all_index_types: List["IndexConfigurator"] = []
+        all_index_types: list[IndexConfigurator] = []
         for proper in propers:
             for index_type in BaseIndexType:
                 if index_type == BaseIndexType.NOT_INDEXED:
                     continue
-                all_index_types.append(ProperIndexType(index_type, proper).get_index_config())
+                all_index_types.append(
+                    ProperIndexType(index_type, proper).get_index_config()
+                )
 
         return all_index_types
 
     @staticmethod
-    def get_main_index(file: "File") -> Optional[str]:
+    def get_main_index(file: "File") -> str | None:
         return IndexHelper._get_index_config_from_file(file).get_main_index(file)
-        
+
     @staticmethod
-    def update_index_from_portions(og_file: "File", parent_index: str, main_index: str) -> None:  # ToDo: Pretty bad code
+    def update_index_from_portions(
+        og_file: "File", parent_index: str, main_index: str
+    ) -> None:  # ToDo: Pretty bad code
         for index_config in IndexHelper._get_all_index_configs(False):
             file = og_file.create_copy()
             try:
@@ -103,9 +114,8 @@ class IndexHelper:
 
     @staticmethod
     def is_subtopic(file: "File", proper: bool) -> bool:
-        return (
-            IndexHelper._is_subtopic_1(file, proper)
-            or IndexHelper._is_subtopic_2(file, proper)
+        return IndexHelper._is_subtopic_1(file, proper) or IndexHelper._is_subtopic_2(
+            file, proper
         )
 
     @staticmethod
@@ -114,11 +124,12 @@ class IndexHelper:
         return index_type.get_index_config().validate(file)
 
     @staticmethod
-    def get_areas_in_dir(file: "File") -> List["File"]:
-        areas: List["File"] = []
-        for child_file in file.get_children():
-            if IndexHelper.is_area(child_file, proper=True):
-                areas.append(child_file)
+    def get_areas_in_dir(file: "File") -> list["File"]:
+        areas = [
+            child_file
+            for child_file in file.get_children()
+            if IndexHelper.is_area(child_file, proper=True)
+        ]
         if len(areas) == 0:
             raise ValueError("Received empty areas directory")
 

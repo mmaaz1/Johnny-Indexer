@@ -1,6 +1,8 @@
+import re
+
 from utils.config.config_helper import ConfigHelper
 from utils.file.file import File
-import re
+
 
 class ObsidianFixer:
     """
@@ -33,23 +35,25 @@ class ObsidianFixer:
                 ObsidianFixer.update_weblinks(child_file, old_file_ref, new_file_ref)
 
     @staticmethod
-    def _update_weblinks_for_file(file: File, old_file_ref: File, new_file_ref: File) -> None:
+    def _update_weblinks_for_file(
+        file: File, old_file_ref: File, new_file_ref: File
+    ) -> None:
         old_name = old_file_ref.get_name_without_extension()
         new_name = new_file_ref.get_name_without_extension()
 
         # Pattern to match [[old_name*]] where * is any content before closing brackets
         escaped_old_name = re.escape(old_name)
-        pattern = fr'\[\[{escaped_old_name}([^\]]*)\]\]'
+        pattern = rf"\[\[{escaped_old_name}([^\]]*)\]\]"
 
         # Replacement preserves whatever was after the name
-        replacement = f'[[{new_name}\\1]]'
+        replacement = f"[[{new_name}\\1]]"
 
-        with open(file.get_abs_path(), 'r', encoding='utf-8') as f:
+        with open(file.get_abs_path(), encoding="utf-8") as f:
             old_content = f.read()
 
         updated_content = re.sub(pattern, replacement, old_content)
 
         if old_content != updated_content:
-            with open(file.get_abs_path(), 'w', encoding='utf-8') as f:
+            with open(file.get_abs_path(), "w", encoding="utf-8") as f:
                 f.write(updated_content)
             print(f"Updated references of {old_file_ref.name} in: {file}")

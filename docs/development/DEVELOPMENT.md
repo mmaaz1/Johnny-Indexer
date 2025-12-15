@@ -10,6 +10,34 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
+## Linting and Formatting
+
+The project uses **Ruff** for fast linting and code formatting. Ruff checks for style issues, import ordering, naming conventions, and performance anti-patterns.
+
+To check for linting issues:
+
+```bash
+ruff check .
+```
+
+To auto-fix linting issues:
+
+```bash
+ruff check . --fix
+```
+
+To check formatting compliance:
+
+```bash
+ruff format --check .
+```
+
+To apply formatting:
+
+```bash
+ruff format .
+```
+
 ## Type Checking
 
 The project uses **pyright** for static type checking with strict enforcement. All Python modules are fully type-annotated.
@@ -17,7 +45,6 @@ The project uses **pyright** for static type checking with strict enforcement. A
 To run the type checker:
 
 ```bash
-source venv/bin/activate
 pyright
 ```
 
