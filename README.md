@@ -139,5 +139,15 @@ The system automatically generates Markdown index files (`Index of [DirectoryNam
 - Support Obsidian-style wiki links for markdown files (`[[filename]]`)
 
 
-## Resources
-- For development, check out `docs/development/DEVELOPMENT.md`
+## Documentation
+
+This project includes comprehensive documentation to help you understand and contribute to the codebase:
+
+### Important Files
+- **[DEVELOPMENT.md](docs/development/DEVELOPMENT.md)** - Instructions for developing the code
+- **[TODO.md](docs/development/TODO.md)** - List of outstanding tasks and future work items
+- **[CLAUDE.md](CLAUDE.md)** - Instructions for the AI agent on how to develop this codebase
+
+### Directories in docs/ folder
+- `docs/ai-brainstorming` - Directory used to keep a log of brainstorm sessions with an AI agent
+- `docs/tasks` - Type annotation improvements and tasks
