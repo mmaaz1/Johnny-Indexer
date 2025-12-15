@@ -96,6 +96,10 @@ def bfs_fix_indexes(root_file: File, area_files: list[File]) -> None:
             old_file = proposal.old_file
             new_file = proposal.new_file
 
+            if new_file.exists():
+                print(f"\n❌ CONFLICT: '{new_file.name}' already exists")
+                sys.exit(1)
+
             if ch.load_from_config("prompt_for_approval"):
                 prompt_user(old_file, new_file)
 

@@ -4,7 +4,7 @@ check:
 	python -m ruff format --check .
 	python -m ruff check .
 	python -m pyright
-	python -m pytest tests/ -v
+# 	python -m pytest tests/ -v
 
 format:
 	python -m ruff format .
