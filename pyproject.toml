@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "johnny-indexer"
+version = "0.1.0"
+description = "Johnny Indexer - Index management and fixing tool"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pyyaml",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+
+[tool.pyright]
+typeCheckingMode = "strict"
+pythonVersion = "3.12"
+include = ["*.py", "utils/**/*.py", "tests/**/*.py"]
+exclude = ["**/__pycache__"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "__pycache__",
+    ".pytest_cache",
+    ".pyright",
+]
+
+[tool.ruff.lint]
+select = [
+    "F",      # Pyflakes - error detection
+    "E",      # Error - style issues
+    "W",      # Warning - style warnings
+    "I",      # isort - import ordering
+    "N",      # pep8-naming - naming conventions
+    "UP",     # pyupgrade - Python syntax updates
+    "ASYNC",  # flake8-async
+    "PERF",   # performance anti-patterns
+    "RUF",    # Ruff-specific rules
+]
+ignore = [
+    "E501",   # Line too long - handled by formatter
+    "N813",   # Allow camelCase imports with lowercase aliases (project convention)
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false

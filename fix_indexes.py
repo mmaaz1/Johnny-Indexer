@@ -1,15 +1,16 @@
 import sys
 from collections import deque
-from utils.file import File
+
+from create_jdex import create_jdex
 from utils.config import ConfigHelper as ch
-from utils.obsidian import ObsidianFixer as of
+from utils.file import File
 from utils.index.index_fixer import IndexFixer as idx_f
 from utils.index.index_helper import IndexHelper as ih
-from create_jdex import create_jdex
+from utils.obsidian import ObsidianFixer as of
 
-'''
+"""
 fix_indexes.py
-    
+
 This script manages and corrects file indexes in a hierarchical directory system. It ensures that files are consistently and properly indexed, enabling better organization and retrieval. The script:
 
 1. Computes parent and main indexes for files based on their location in the hierarchy.
@@ -27,15 +28,17 @@ Key Components:
 
 Usage:
 Run the script to automatically process and correct indexes in a specified directory hierarchy.
-'''
+"""
+
 
 class ProposedChange:
-    def __init__(self, old_file, new_file):
+    def __init__(self, old_file: File, new_file: File) -> None:
         self.old_file = old_file
         self.new_file = new_file
 
-def propose_index_update(old_file):
-    """ Fix parent and main portions of indexes for files in the given directory """
+
+def propose_index_update(old_file: File) -> ProposedChange | None:
+    """Fix parent and main portions of indexes for files in the given directory"""
     new_file = old_file.create_copy()
     idx_f.fix_index(new_file)
 
@@ -44,32 +47,40 @@ def propose_index_update(old_file):
     else:
         return None
 
-def prompt_user(old_file, new_file):
+
+def prompt_user(old_file: File, new_file: File) -> None:
     while True:
         print(f"\nParent: {old_file.get_parent()}")
         print("Siblings:")
-        for iter_file in [sibling for sibling in old_file.get_siblings() if not ch.excluded_from_indexing(sibling)]:
+        for iter_file in [
+            sibling
+            for sibling in old_file.get_siblings()
+            if not ch.excluded_from_indexing(sibling)
+        ]:
             if iter_file != old_file:
                 print(f"- {iter_file}")
             else:
                 print(f"-> {iter_file} => {new_file}")
         print("")
 
-        user_input = input(f"'{old_file.name}' => '{new_file.name}' (y/n): ").strip().lower()
-        if user_input == 'y':
+        user_input = (
+            input(f"'{old_file.name}' => '{new_file.name}' (y/n): ").strip().lower()
+        )
+        if user_input == "y":
             print("Proceeding.")
             break
-        elif user_input == 'n':
+        elif user_input == "n":
             print("Exiting.")
             sys.exit(0)
         else:
             print("Invalid input. Please enter 'y' or 'n'.")
 
-def bfs_fix_indexes(root_file, area_files):
-    queue = deque(area_files)
+
+def bfs_fix_indexes(root_file: File, area_files: list[File]) -> None:
+    queue: deque[File] = deque(area_files)
 
     while queue:
-        proposed_changes = []
+        proposed_changes: list[ProposedChange] = []
         for _ in range(len(queue)):
             parent_file = queue.popleft()
             for file in parent_file.get_children():
@@ -80,29 +91,40 @@ def bfs_fix_indexes(root_file, area_files):
                     proposed_changes.append(proposal)
 
         proposed_changes.sort(key=lambda proposal: proposal.new_file)
+
         for proposal in proposed_changes:
             old_file = proposal.old_file
             new_file = proposal.new_file
 
+            if new_file.exists():
+                print(f"\n❌ CONFLICT: '{new_file.name}' already exists")
+                sys.exit(1)
+
             if ch.load_from_config("prompt_for_approval"):
                 prompt_user(old_file, new_file)
 
-            if ch.load_from_config("fix_weblinks"):
-                of.update_weblinks(root_file, old_file, new_file)
-
             old_file.rename(new_file)
 
-def main():
-    '''Creating a main function to minimize the number of global variables'''
+        # Batch update weblinks for all changes at once, after all renames applied
+        if ch.load_from_config("fix_weblinks") and proposed_changes:
+            file_changes = {
+                proposal.old_file: proposal.new_file for proposal in proposed_changes
+            }
+            of.update_weblinks_batch(root_file, file_changes)
+
+
+def main() -> None:
+    """Creating a main function to minimize the number of global variables"""
     if len(sys.argv) != 2:
         raise ValueError("Usage: python fix_indexes.py <root_path>")
-    
+
     root_path = sys.argv[1]
     root_file = File.from_abs_path(root_path, -1)
     areas = ih.get_areas_in_dir(root_file)
-    
+
     bfs_fix_indexes(root_file, areas)
     create_jdex(root_file)
+
 
 if __name__ == "__main__":
     main()
