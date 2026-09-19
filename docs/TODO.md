@@ -9,7 +9,7 @@
 - [f] Summary report for when unexpected things happen
 - [ ] Dry Run Mode - Users cannot preview all changes without applying them. Current workflow is to commit changes through git then run script.
 
-### Daily Committer
+### Auto Commit
 - [f] Make AI create a commit comment
 
 ## Tech Debt

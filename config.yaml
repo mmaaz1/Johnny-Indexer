@@ -14,3 +14,9 @@ prompt_for_approval: false
 
 # Whether JDex files are regenerated after fixing indexes
 generate_jdex: true
+
+# Whether notes are committed to git before fixing indexes, as a restore point
+auto_commit: true
+
+# Whether notes are pushed to their git remote after auto-committing
+auto_push: true

@@ -4,6 +4,7 @@ from collections import deque
 from create_jdex import create_jdex
 from utils.config import ConfigHelper as ch
 from utils.file import File
+from utils.git import GitCommitter
 from utils.index.index_fixer import IndexFixer as idx_f
 from utils.index.index_helper import IndexHelper as ih
 from utils.obsidian import ObsidianFixer as of
@@ -76,7 +77,17 @@ def prompt_user(old_file: File, new_file: File) -> None:
             print("Invalid input. Please enter 'y' or 'n'.")
 
 
-def bfs_fix_indexes(root_file: File, area_files: list[File]) -> None:
+def should_prompt() -> bool:
+    """Prompts are only shown when enabled and someone is at a terminal to answer them."""
+    if not ch.load_from_config("prompt_for_approval"):
+        return False
+    if not sys.stdin.isatty():
+        print("Non-interactive run: applying renames without prompting.")
+        return False
+    return True
+
+
+def bfs_fix_indexes(root_file: File, area_files: list[File], prompt: bool) -> None:
     queue: deque[File] = deque(area_files)
 
     while queue:
@@ -100,7 +111,7 @@ def bfs_fix_indexes(root_file: File, area_files: list[File]) -> None:
                 print(f"\n❌ CONFLICT: '{new_file.name}' already exists")
                 sys.exit(1)
 
-            if ch.load_from_config("prompt_for_approval"):
+            if prompt:
                 prompt_user(old_file, new_file)
 
             old_file.rename(new_file)
@@ -122,7 +133,8 @@ def main() -> None:
     root_file = File.from_abs_path(root_path, -1)
     areas = ih.get_areas_in_dir(root_file)
 
-    bfs_fix_indexes(root_file, areas)
+    GitCommitter.auto_commit(root_file)
+    bfs_fix_indexes(root_file, areas, should_prompt())
     if ch.load_from_config("generate_jdex"):
         create_jdex(root_file)
 

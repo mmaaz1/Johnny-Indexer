@@ -9,16 +9,27 @@ In your knowledge base, manually create the Area indexes with the format `X0-X9`
 
 ## Usage
 
-To fix and generate indexes for files in a directory, run:
+### One-time
+From this repo's directory, run:
 ```bash
-python fix_indexes.py <path_to_directory>
+venv/bin/python fix_indexes.py "/path/to/notes"
 ```
 
-### Cron Usage
-Here is a sample cron job to fix indexes and create commit:
+### Recurring (Linux and macOS)
+Schedule the indexer to run every few hours, anchored at 12 pm local time. Logs are written in `logs/fix_indexes_<notes directory name>.log`
+
+0. On macOS, notes in iCloud Drive, Documents or Desktop need `/usr/sbin/cron` to have Full Disk Access (System Settings > Privacy & Security).
+1. Schedule the indexer:
+   ```bash
+   venv/bin/python schedule.py install "/path/to/notes"
+   ```
+   - `--hours N` sets the hours between runs: `1`, `2`, `3`, `4`, `6`, `8`, `12` or `24` (default). Eg: `--hours 6`.
+   - `--skip-test` skips the setup check that runs the indexer once during install.
+
+Manage scheduled runs:
 ```bash
-*/30 * * * * SCRIPT_DIR_PATH/.venv/bin/python3 SCRIPT_DIR_PATH/fix_indexes.py NOTES_PATH >> SCRIPT_DIR_PATH/logs/fix_indexes_MaazWorkNotes.log 2>&1
-*/5 * * * * SCRIPT_DIR_PATH/.venv/bin/python3 SCRIPT_DIR_PATH/helper_scripts/commit_daily.py NOTES_PATH >> SCRIPT_DIR_PATH/logs/commit_daily.py.log 2>&1
+venv/bin/python schedule.py status
+venv/bin/python schedule.py uninstall "/path/to/notes"
 ```
 
 ## Additional Configuration
@@ -34,14 +45,18 @@ Excluded files are never renamed, aren't marked **(NOT INDEXED)** in JDex files,
 
 ### Prompt User Before Acting
 - `prompt_for_approval`: When `true`, asks for confirmation before each rename. Answering `n` stops the run.
+  Only applies when running in a terminal. Scheduled and other non-interactive runs apply renames without prompting.
 
 ### Generate JDex
 - `generate_jdex`: When `true`, regenerates the [JDex files](#jdex-file-generation) after fixing indexes
 
-To generate JDex files without fixing indexes, run `python create_jdex.py <path_to_directory>`.
+To generate JDex files without fixing indexes, run `venv/bin/python create_jdex.py "/path/to/notes"`.
 
-## Helper Scripts
-- **Daily Committer**: Script that can be used to commmit changes to your documentation daily
+### Auto Commit
+The notes directory must be in a git repository. Failures are reported in the output but never stop the indexer.
+- `auto_commit`: When `true`, commits the notes directory to git before fixing indexes, so every run has a restore point
+- `auto_push`: When `true`, pushes to the notes repository's remote. Commits from an earlier failed push are retried on the next run.
+  - Scheduled runs can't use the macOS keychain, so use an SSH remote (eg: `git@github.com:user/notes.git`) with a key that has no passphrase.
 
 ## Johnny Index System Specification
 
@@ -116,20 +131,21 @@ The system defines seven types of organization across 4 levels:
 
 Files are processed using a breadth-first search (BFS) algorithm:
 
+1. **Auto Commit** (if enabled): Commit the notes directory to git as a restore point, then push (if enabled)
 1. **Initialize**: Start with all Area directories at Level 0
 1. **Collect Changes**: For each directory level:
    - Scan all non-excluded files in current level
-   - Sort files alphabetically by filename
+   - Sort files by their current index, so existing order is kept. Files without an index go last, oldest (by creation time) first
    - Assign main indexes based on position in sorted list (0, 1, 2, ...) with zero-padding to match directory width
    - For Topics, ensure main indexes always have 2 digits (e.g., `01`, `02`, `10`)
    - For Extensions, preserve their alphabetic suffix (e.g., `+DOCS`, `+CODE`)
    - Combine parent index + separator + main index to create expected full index
    - Identify files where actual index doesn't match expected index
-1. **Sort & Present**: Sort proposed changes alphabetically by new filename
+1. **Sort & Present**: Sort proposed changes by their new index
 1. **User Confirmation** (if enabled): Prompt user to approve each rename (`y`) or stop the run (`n`)
 1. **Apply Renames**: Rename each file on disk, stopping the run if the new filename already exists
 1. **Update Links** (if enabled): In a single pass over the directory tree, update links to any of the renamed files so they point to the new filenames
-1. **Recurse**: Move to the next directory level and repeat from step 2
+1. **Recurse**: Move to the next directory level and repeat from step 3
 1. **Generate JDex** (if enabled): After all renames complete, regenerate index files
 
 ### JDex File Generation
