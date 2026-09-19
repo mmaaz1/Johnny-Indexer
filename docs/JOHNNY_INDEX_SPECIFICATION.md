@@ -38,5 +38,5 @@ The system defines seven types of organization across 4 levels:
 
 1. **The Rest** (Level 4+) - The system has given up. Existence of these files indicates you need to re-organize
     - Format: `Y*` (e.g., `1`, `25`, `100`)
-    - Parent: Subtopic Type 1 or Subtopic Type 2
+    - Parent: Subtopic Type 1, Subtopic Type 2 or The Rest, up to level 10
     - Max: Unlimited

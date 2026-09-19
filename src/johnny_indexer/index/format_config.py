@@ -119,7 +119,11 @@ class BaseIndexType(Enum):
         proper_index_patterns=[_WILDCARD_INDEX_PATTERN],
         improper_index_patterns=_IMPROPER_INDEX_PATTERNS,
         levels=[4, 5, 6, 7, 8, 9, 10],
-        parents=lambda: [BaseIndexType.SUBTOPIC_1, BaseIndexType.SUBTOPIC_2],
+        parents=lambda: [
+            BaseIndexType.SUBTOPIC_1,
+            BaseIndexType.SUBTOPIC_2,
+            BaseIndexType["THE_REST"],  # By name, since it can't refer to itself
+        ],
         separator="",
     )
     NOT_INDEXED = IndexTypeConfig(

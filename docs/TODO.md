@@ -10,6 +10,3 @@
 
 ### Auto Commit
 - [f] Make AI create a commit comment
-
-## Tech Debt
-- [ ] update_index_from_portions is failing silently. Figure out why. Its errors are now logged at `DEBUG`.

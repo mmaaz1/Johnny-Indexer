@@ -59,7 +59,9 @@ class IndexFixer:
             if parent_index is None:
                 return ""
             return parent_index
-        elif ih.is_subtopic(parent_file, proper=True):
+        elif ih.is_subtopic(parent_file, proper=True) or ih.is_the_rest(
+            parent_file, proper=True
+        ):
             return ""
         elif ih.is_index(parent_file, proper=True):
             index_result = ih.get_index(parent_file)

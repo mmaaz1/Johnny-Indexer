@@ -67,7 +67,10 @@ class IndexHelper:
             except ValueError as e:
                 logger.debug("Index format didn't fit %s: %s", og_file, e)
 
-        raise ValueError("Only updating proper index is supported.")
+        raise ValueError(
+            f"No index format fits '{og_file}' with parent index '{parent_index}' "
+            f"and main index '{main_index}'"
+        )
 
     @staticmethod
     def update_index(og_file: File, new_index: str) -> None:  # ToDo: Pretty bad code
