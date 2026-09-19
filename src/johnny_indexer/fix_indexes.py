@@ -1,18 +1,18 @@
 import sys
 from collections import deque
 
-from create_jdex import create_jdex
-from utils.config import ConfigHelper as ch
-from utils.file import File
-from utils.git import GitCommitter
-from utils.index.index_fixer import IndexFixer as idx_f
-from utils.index.index_helper import IndexHelper as ih
-from utils.obsidian import ObsidianFixer as of
+from johnny_indexer.config import ConfigHelper as ch
+from johnny_indexer.create_jdex import create_jdex
+from johnny_indexer.file import File
+from johnny_indexer.git_committer import GitCommitter
+from johnny_indexer.index.fixer import IndexFixer as idx_f
+from johnny_indexer.index.helper import IndexHelper as ih
+from johnny_indexer.obsidian_fixer import ObsidianFixer as of
 
 """
 fix_indexes.py
 
-This script manages and corrects file indexes in a hierarchical directory system. It ensures that files are consistently and properly indexed, enabling better organization and retrieval. The script:
+This module manages and corrects file indexes in a hierarchical directory system. It ensures that files are consistently and properly indexed, enabling better organization and retrieval. The script:
 
 1. Computes parent and main indexes for files based on their location in the hierarchy.
 2. Constructs new indexes by appending parent and main indexes with appropriate separators.
@@ -28,7 +28,7 @@ Key Components:
 - bfs_fix_indexes: Performs breadth-first search to apply index corrections across files.
 
 Usage:
-Run the script to automatically process and correct indexes in a specified directory hierarchy.
+    johnny-indexer fix <notes_path>
 """
 
 
@@ -124,12 +124,7 @@ def bfs_fix_indexes(root_file: File, area_files: list[File], prompt: bool) -> No
             of.update_weblinks_batch(root_file, file_changes)
 
 
-def main() -> None:
-    """Creating a main function to minimize the number of global variables"""
-    if len(sys.argv) != 2:
-        raise ValueError("Usage: python fix_indexes.py <root_path>")
-
-    root_path = sys.argv[1]
+def fix_indexes(root_path: str) -> None:
     root_file = File.from_abs_path(root_path, -1)
     areas = ih.get_areas_in_dir(root_file)
 
@@ -137,7 +132,3 @@ def main() -> None:
     bfs_fix_indexes(root_file, areas, should_prompt())
     if ch.load_from_config("generate_jdex"):
         create_jdex(root_file)
-
-
-if __name__ == "__main__":
-    main()

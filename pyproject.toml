@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=45", "wheel"]
+requires = ["setuptools>=64"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -9,8 +9,18 @@ description = "Johnny Indexer - Index management and fixing tool"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "pyyaml",
+    "pyyaml>=6.0.3",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "pyright>=1.1.0",
+    "pytest>=9.0",
+    "ruff>=0.1.0",
+]
+
+[project.scripts]
+johnny-indexer = "johnny_indexer.__main__:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -19,7 +29,9 @@ python_files = "test_*.py"
 [tool.pyright]
 typeCheckingMode = "strict"
 pythonVersion = "3.12"
-include = ["*.py", "utils/**/*.py", "tests/**/*.py"]
+include = ["src", "tests"]
+venvPath = "."
+venv = "venv"
 exclude = ["**/__pycache__"]
 
 [tool.ruff]

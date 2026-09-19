@@ -10,13 +10,13 @@ patterns_excluded_from_indexing:
 fix_weblinks: true
 
 # Whether user approval is required before making any index updates
-prompt_for_approval: false
+prompt_for_approval: true
 
 # Whether JDex files are regenerated after fixing indexes
 generate_jdex: true
 
 # Whether notes are committed to git before fixing indexes, as a restore point
-auto_commit: true
+auto_commit: false
 
 # Whether notes are pushed to their git remote after auto-committing
-auto_push: true
+auto_push: false

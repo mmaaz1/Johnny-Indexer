@@ -1,9 +1,8 @@
-import sys
 from datetime import datetime
 
-from utils.config.config_helper import ConfigHelper as ch
-from utils.file import File
-from utils.index.index_helper import IndexHelper as ih
+from johnny_indexer.config import ConfigHelper as ch
+from johnny_indexer.file import File
+from johnny_indexer.index.helper import IndexHelper as ih
 
 
 def _should_exclude(file: File) -> bool:
@@ -72,17 +71,3 @@ def create_jdex(root_file: File) -> None:
     for file in files_to_index:
         _generate_markdown_index(file)
     print("JIndexes Updated.")
-
-
-def main() -> None:
-    if len(sys.argv) != 2:
-        raise ValueError("Usage: python create_jdex.py <root_path>")
-
-    root_path = sys.argv[1]
-    root_file = File.from_abs_path(root_path, -1)
-
-    create_jdex(root_file)
-
-
-if __name__ == "__main__":
-    main()

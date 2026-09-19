@@ -3,8 +3,8 @@ import subprocess
 from collections.abc import Callable
 from datetime import datetime
 
-from utils.config.config_helper import ConfigHelper
-from utils.file.file import File
+from johnny_indexer.config import ConfigHelper
+from johnny_indexer.file import File
 
 _PUSH_TIMEOUT_SECONDS = 60
 

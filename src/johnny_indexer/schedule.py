@@ -8,10 +8,12 @@ import subprocess
 import sys
 import time
 
+from johnny_indexer.paths import LOGS_PATH, PROJECT_ROOT
+
 """
 schedule.py
 
-Sets up recurring runs of fix_indexes.py so users never edit a crontab by hand.
+Sets up recurring runs of the indexer so users never edit a crontab by hand.
 Cron is used under the hood because it works on both macOS and Linux.
 
 Each scheduled notes directory gets one crontab line, tagged with a marker comment so
@@ -22,19 +24,18 @@ quick checks and then the indexer, starting within the next minute. Running the 
 would miss cron-only problems, like missing Full Disk Access on macOS or git credentials.
 
 Usage:
-    python schedule.py install <notes_path> [--hours 24] [--skip-test]
-    python schedule.py status
-    python schedule.py uninstall <notes_path>
+    johnny-indexer schedule install <notes_path> [--hours 24] [--skip-test]
+    johnny-indexer schedule status
+    johnny-indexer schedule uninstall <notes_path>
 """
 
 _MARKER = "# johnny-indexer:"
 _VALID_HOURS = (1, 2, 3, 4, 6, 8, 12, 24)
 _ANCHOR_HOUR = 12
 _TEST_MARKER = "# johnny-indexer-test:"
-_REPO_PATH = os.path.dirname(os.path.abspath(__file__))
-_TEST_RESULT_PATH = os.path.join(_REPO_PATH, "logs", "schedule_test_result.txt")
-_TEST_LOG_PATH = os.path.join(_REPO_PATH, "logs", "schedule_test.log")
-_TEST_LOCK_PATH = os.path.join(_REPO_PATH, "logs", "schedule_test.lock")
+_TEST_RESULT_PATH = os.path.join(LOGS_PATH, "schedule_test_result.txt")
+_TEST_LOG_PATH = os.path.join(LOGS_PATH, "schedule_test.log")
+_TEST_LOCK_PATH = os.path.join(LOGS_PATH, "schedule_test.lock")
 _TEST_START_TIMEOUT_SECONDS = 120
 _PUSH_TIMEOUT_SECONDS = 60
 _TEST_TIMEOUT_SECONDS = 300
@@ -78,15 +79,19 @@ def _without_entry(lines: list[str], marker: str) -> list[str]:
     return [line for line in lines if not line.endswith(marker)]
 
 
-def _command(script_args: list[str], log_path: str) -> str:
-    """Builds a shell command that runs a script in this repo with the current Python."""
+def _cli(*args: str) -> list[str]:
+    """The johnny-indexer command with the current Python, which works under cron."""
+    return [sys.executable, "-m", "johnny_indexer", *args]
+
+
+def _command(cli_args: list[str], log_path: str) -> str:
+    """Builds a shell command that runs the CLI from the project root."""
     return " ".join(
         [
             "cd",
-            shlex.quote(_REPO_PATH),
+            shlex.quote(PROJECT_ROOT),
             "&&",
-            shlex.quote(sys.executable),
-            *(shlex.quote(arg) for arg in script_args),
+            *(shlex.quote(arg) for arg in _cli(*cli_args)),
             ">>",
             shlex.quote(log_path),
             "2>&1",
@@ -100,7 +105,7 @@ def _log_path(notes_path: str) -> str:
 
 
 def _build_line(notes_path: str, hours: int) -> str:
-    command = _command(["fix_indexes.py", notes_path], _log_path(notes_path))
+    command = _command(["fix", notes_path], _log_path(notes_path))
     return f"{_hours_to_cron(hours)} {command} {_MARKER} {notes_path}"
 
 
@@ -112,7 +117,7 @@ def _build_test_line(notes_path: str) -> str:
     macOS does when the crontab was empty.
     """
     command = _command(
-        ["schedule.py", "test", notes_path, _TEST_RESULT_PATH], _TEST_LOG_PATH
+        ["schedule", "test", notes_path, _TEST_RESULT_PATH], _TEST_LOG_PATH
     )
     return f"* * * * * {command} {_TEST_MARKER} {notes_path}"
 
@@ -149,7 +154,9 @@ def _check_setup(notes_path: str) -> None:
             ) from e
         raise
 
-    from utils.config import ConfigHelper as ch  # Checks dependencies load under cron
+    from johnny_indexer.config import (
+        ConfigHelper as ch,
+    )  # Checks dependencies load under cron
 
     if ch.load_from_config("auto_push") is True:
         result = subprocess.run(
@@ -168,15 +175,15 @@ def _check_setup(notes_path: str) -> None:
 def _run_indexer(notes_path: str) -> None:
     """Runs the indexer like a scheduled run would, failing on errors or warnings."""
     result = subprocess.run(
-        [sys.executable, "fix_indexes.py", notes_path],
-        cwd=_REPO_PATH,
+        _cli("fix", notes_path),
+        cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
         stdin=subprocess.DEVNULL,
     )
     output = (result.stdout + result.stderr).strip()
     with open(
-        os.path.join(_REPO_PATH, _log_path(notes_path)), "a", encoding="utf-8"
+        os.path.join(PROJECT_ROOT, _log_path(notes_path)), "a", encoding="utf-8"
     ) as f:
         f.write(output + "\n")
 
@@ -251,10 +258,10 @@ def _test_failure_output() -> str:
 def install(notes_path: str, hours: int, skip_test: bool) -> None:
     if not os.path.isdir(notes_path):
         sys.exit(f"'{notes_path}' is not a directory.")
-    if "%" in notes_path or "%" in _REPO_PATH or "\n" in notes_path:
+    if "%" in notes_path or "%" in PROJECT_ROOT or "\n" in notes_path:
         sys.exit("Paths containing '%' or newlines can't be scheduled with cron.")
 
-    os.makedirs(os.path.join(_REPO_PATH, "logs"), exist_ok=True)
+    os.makedirs(LOGS_PATH, exist_ok=True)
     marker = f"{_MARKER} {notes_path}"
     line = _build_line(notes_path, hours)
     _write_crontab([*_without_entry(_read_crontab(), marker), line])
@@ -273,7 +280,7 @@ def install(notes_path: str, hours: int, skip_test: bool) -> None:
 
     print(f"✅ Scheduled every {hours}h: {notes_path}")
     print("Test run of the indexer through cron succeeded.")
-    print(f"Logs: {os.path.join(_REPO_PATH, 'logs')}")
+    print(f"Logs: {LOGS_PATH}")
 
 
 def status() -> None:
@@ -295,9 +302,8 @@ def uninstall(notes_path: str) -> None:
     print(f"Removed scheduled run: {notes_path}")
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Schedule recurring index fixes.")
-    commands = parser.add_subparsers(dest="command", required=True)
+def add_arguments(parser: argparse.ArgumentParser) -> None:
+    commands = parser.add_subparsers(dest="schedule_command", required=True)
 
     install_parser = commands.add_parser("install", help="Schedule recurring runs")
     install_parser.add_argument("notes_path")
@@ -323,23 +329,20 @@ def main() -> None:
     test_parser.add_argument("notes_path")
     test_parser.add_argument("result_path")
 
-    args = parser.parse_args()
-    if args.command == "test":
+
+def run(args: argparse.Namespace) -> None:
+    if args.schedule_command == "test":
         test(args.notes_path, args.result_path)
         return
     if shutil.which("crontab") is None:
         sys.exit("`crontab` was not found. Scheduling requires cron.")
 
-    if args.command == "install":
+    if args.schedule_command == "install":
         try:
             install(os.path.abspath(args.notes_path), args.hours, args.skip_test)
         except ValueError as e:
             sys.exit(str(e))
-    elif args.command == "status":
+    elif args.schedule_command == "status":
         status()
     else:
         uninstall(os.path.abspath(args.notes_path))
-
-
-if __name__ == "__main__":
-    main()

@@ -1,7 +1,7 @@
 # import pytest
 # from typing import List, Callable, Any
-# from utils.file import File
-# from utils.index.index_helper import IndexHelper as ih
+# from johnny_indexer.file import File
+# from johnny_indexer.index.helper import IndexHelper as ih
 
 # INDEX_TYPE_ATTRS = ["areas", "categories", "topics", "extensions", "subtopics_1", "subtopics_2"]
 # VALIDITY_TYPE_ATTRS = ["proper", "invalid", "improper", "improper_exclusive"]

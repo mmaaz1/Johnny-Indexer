@@ -1,4 +1,5 @@
 # Python
+*.egg-info
 __pycache__
 .pytest_cache
 .venv
@@ -7,8 +8,9 @@ __pycache__
 .vscode
 .idea
 
-# Logs
-*.log
+# Local config and logs
+config.yaml
+logs/
 
 venv
 

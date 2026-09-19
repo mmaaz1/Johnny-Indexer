@@ -1,6 +1,6 @@
-from utils.config.config_helper import ConfigHelper as ch
-from utils.file.file import File
-from utils.index.index_helper import IndexHelper as ih
+from johnny_indexer.config import ConfigHelper as ch
+from johnny_indexer.file import File
+from johnny_indexer.index.helper import IndexHelper as ih
 
 
 class IndexFixer:

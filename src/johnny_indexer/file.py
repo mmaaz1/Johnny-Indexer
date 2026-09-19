@@ -1,16 +1,15 @@
 import copy
 import os
-import sys
 from functools import total_ordering
 from typing import TYPE_CHECKING
 
-from utils.index.index_helper import IndexHelper as ih
+from johnny_indexer.index.helper import IndexHelper as ih
 
 # TODO: Refactor imports to eliminate circular dependency between File and IndexHelper
-# Currently, File imports IndexHelper, and IndexHelper imports types from index_format_config.
+# Currently, File imports IndexHelper, and IndexHelper imports types from index.format_config.
 # Consider moving index-related logic to a separate module or reorganizing the import structure.
 if TYPE_CHECKING:
-    from utils.index.index_format_config import ProperIndexType
+    from johnny_indexer.index.format_config import ProperIndexType
 
 
 @total_ordering  # Automatically fills in all comparison methods
@@ -22,12 +21,6 @@ class File:
     name: str
     dir_path: str
     level: int
-
-    ### Constants
-    @staticmethod
-    def get_root_path() -> str:
-        script_path = os.path.abspath(sys.argv[0])
-        return os.path.dirname(script_path)
 
     ### Constructors
     @classmethod

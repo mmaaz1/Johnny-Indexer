@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from utils.index.index_format_config import (
+from johnny_indexer.index.format_config import (
     PROPER_NOT_INDEXED,
     BaseIndexType,
     IndexConfigurator,
@@ -8,7 +8,7 @@ from utils.index.index_format_config import (
 )
 
 if TYPE_CHECKING:
-    from utils.file.file import File
+    from johnny_indexer.file import File
 
 
 class IndexHelper:

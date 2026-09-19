@@ -1,22 +1,25 @@
+import os
 import re
 from typing import Any
 
 import yaml
 
-from utils.file import File
-
-_CONFIG_FILE_NAME = "config.yaml"
+from johnny_indexer.file import File
+from johnny_indexer.paths import CONFIG_PATH
 
 
 class ConfigHelper:
     @staticmethod
     def load_from_config(key: str) -> Any:
-        config_path = File.from_name_and_path(_CONFIG_FILE_NAME, File.get_root_path())
+        if not os.path.exists(CONFIG_PATH):
+            raise FileNotFoundError(
+                f"{CONFIG_PATH} not found. Copy config.example.yaml to config.yaml."
+            )
 
-        with open(config_path.get_abs_path()) as config_file:
+        with open(CONFIG_PATH) as config_file:
             config = yaml.safe_load(config_file)
         if key not in config:
-            raise ValueError(f"Invalid key {key} in {_CONFIG_FILE_NAME}")
+            raise ValueError(f"Invalid key {key} in {CONFIG_PATH}")
 
         return config[key]
 

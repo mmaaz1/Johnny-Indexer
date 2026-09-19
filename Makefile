@@ -1,11 +1,19 @@
-.PHONY: check format help
+.PHONY: install check format test
+
+PYTHON := venv/bin/python
+
+install:
+	python3 -m venv venv
+	$(PYTHON) -m pip install -e ".[dev]"
 
 check:
-	python -m ruff format --check .
-	python -m ruff check .
-	python -m pyright
-# 	python -m pytest tests/ -v
+	$(PYTHON) -m ruff format --check .
+	$(PYTHON) -m ruff check .
+	$(PYTHON) -m pyright
 
 format:
-	python -m ruff format .
-	python -m ruff check . --fix
+	$(PYTHON) -m ruff format .
+	$(PYTHON) -m ruff check . --fix
+
+test:
+	$(PYTHON) -m pytest tests/ -v

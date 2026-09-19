@@ -1,18 +1,32 @@
+# Development
+
 ## Setup
 
-### Virtual Environment
-
-This project uses a Python virtual environment to manage dependencies. To set up:
+Create the virtual environment and install the package in editable mode, with dev tools:
 
 ```bash
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
+make install
+cp config.example.yaml config.yaml
 ```
+
+Dependencies are declared in `pyproject.toml`. Runtime dependencies go in `dependencies`, dev tools in the `dev` extra.
+
+## Project Layout
+
+- `src/johnny_indexer/` - The package
+  - `__main__.py` - The `johnny-indexer` CLI (`fix`, `jdex`, `schedule`)
+  - `fix_indexes.py`, `create_jdex.py`, `schedule.py` - One module per command
+  - `index/` - Index formats, parsing and fixing
+  - `paths.py` - Paths to `config.yaml` and `logs/`, relative to the repo root
+- `tests/` - Tests
+- `config.example.yaml` - Default config. The user's `config.yaml` is gitignored.
+- `logs/` - Logs of scheduled runs. Gitignored and created at runtime.
+
+The package is installed in editable mode and reads `config.yaml` and `logs/` from the repo root, so it's run from its repo checkout.
 
 ## Checks and Formatting
 
-Run all checks (linting, type checking, tests):
+Run all checks (formatting, linting, type checking):
 
 ```bash
 make check
@@ -22,6 +36,12 @@ Format code and fix linting issues:
 
 ```bash
 make format
+```
+
+Run tests:
+
+```bash
+make test
 ```
 
 ## Design and Implementation

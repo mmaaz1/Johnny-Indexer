@@ -6,7 +6,7 @@ from enum import Enum
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from utils.file.file import File
+    from johnny_indexer.file import File
 
 """
 This file contains the source of truth for my index formatting system. What is a valid proper/improper area/category, etc.

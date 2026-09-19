@@ -1,7 +1,7 @@
 import re
 
-from utils.config.config_helper import ConfigHelper
-from utils.file.file import File
+from johnny_indexer.config import ConfigHelper
+from johnny_indexer.file import File
 
 # Matches the rest of a wiki link after the file name: an optional .md extension, then an
 # optional heading/block (#) or alias (|), then the closing brackets. Requiring one of these
