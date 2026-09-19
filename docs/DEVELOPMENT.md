@@ -99,4 +99,6 @@ The system automatically generates Markdown index files (`Index of [DirectoryNam
 - Document the directory structure in a hierarchical format
 - Mark files that are not properly indexed with **(NOT INDEXED)**
 - Are automatically updated after each fix operation when `generate_jdex` is enabled
+- Are only rewritten when their content changes, and have no timestamp, so runs that change nothing leave nothing for auto-commit
+- Are generated for Areas before the root, so the root lists each Area's current index file. Index files left behind by a renamed directory are deleted
 - Support Obsidian-style wiki links for markdown files (`[[filename]]`)

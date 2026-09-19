@@ -1,4 +1,4 @@
-from datetime import datetime
+import os
 
 from johnny_indexer.config import ConfigHelper as ch
 from johnny_indexer.file import File
@@ -49,16 +49,26 @@ def _traverse_dir(parent_file: File, base_level: int) -> str:
 
 def _generate_markdown_index(file: File) -> None:
     """
-    Generates a markdown index of the directory structure.
+    Generates a markdown index of the directory structure. The file is only written when
+    its content changes, so runs that change nothing leave nothing to commit.
     """
-    markdown_content = f"> [!info] **Generated on**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
-    markdown_content += _traverse_dir(file, file.level)
+    markdown_content = _traverse_dir(file, file.level)
+    output_file = file.create_child(f"Index of {file.name}.md")
 
+    # Remove index files left behind by an earlier name of this directory
     for child_file in file.get_children():
-        if child_file.name.startswith("Index of ") and child_file.name.endswith(".md"):
+        if (
+            child_file.name.startswith("Index of ")
+            and child_file.name.endswith(".md")
+            and child_file != output_file
+        ):
             child_file.delete()
 
-    output_file = file.create_child(f"Index of {file.name}.md")
+    if os.path.exists(output_file.get_abs_path()):
+        with open(output_file.get_abs_path(), encoding="utf-8") as f:
+            if f.read() == markdown_content:
+                return
+
     with open(output_file.get_abs_path(), "w", encoding="utf-8") as f:
         f.write(markdown_content)
 
@@ -66,7 +76,8 @@ def _generate_markdown_index(file: File) -> None:
 def create_jdex(root_file: File) -> None:
     area_files = ih.get_areas_in_dir(root_file)
 
-    files_to_index = [root_file, *area_files]
+    # Areas first, so the root lists their current index files rather than stale ones
+    files_to_index = [*area_files, root_file]
     print("Updating all JIndexes.")
     for file in files_to_index:
         _generate_markdown_index(file)

@@ -3,6 +3,7 @@ import re
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
+from functools import cache
 
 from johnny_indexer.file import File
 
@@ -284,6 +285,16 @@ def get_index_type(file: File) -> ProperIndexType:
     The first index type whose config validates the file, preferring proper types.
     Lives here, not in IndexHelper, since validating a file needs its parent's type.
     """
+    return _get_index_type(file.name, file.dir_path, file.level)
+
+
+@cache
+def _get_index_type(name: str, dir_path: str, level: int) -> ProperIndexType:
+    """
+    Cached, since validating a file recursively finds the index type of each ancestor.
+    The type depends only on these arguments, so a renamed file gets a new cache entry.
+    """
+    file = File.from_name_and_path(name, dir_path, level)
     for proper in [True, False]:
         for base_index_type in BaseIndexType:
             if base_index_type == BaseIndexType.NOT_INDEXED:
