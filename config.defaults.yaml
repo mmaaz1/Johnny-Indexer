@@ -22,3 +22,6 @@ auto_commit: false
 
 # Whether notes are pushed to their git remote after auto-committing
 auto_push: false
+
+# Which log messages are shown and written to logs/: DEBUG, INFO, WARNING or ERROR
+log_level: INFO

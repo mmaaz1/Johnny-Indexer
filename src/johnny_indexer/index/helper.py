@@ -1,3 +1,5 @@
+import logging
+
 from johnny_indexer.file import File
 from johnny_indexer.index import format_config
 from johnny_indexer.index.format_config import (
@@ -5,6 +7,8 @@ from johnny_indexer.index.format_config import (
     IndexConfigurator,
     ProperIndexType,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class IndexHelper:
@@ -60,8 +64,8 @@ class IndexHelper:
                 if IndexHelper.is_index(file, True):
                     og_file.copy_from(file)
                     return
-            except ValueError:
-                pass
+            except ValueError as e:
+                logger.debug("Index format didn't fit %s: %s", og_file, e)
 
         raise ValueError("Only updating proper index is supported.")
 
@@ -74,8 +78,8 @@ class IndexHelper:
                 if IndexHelper.is_index(file, True):
                     og_file.copy_from(file)
                     return
-            except ValueError:
-                pass
+            except ValueError as e:
+                logger.debug("Index format didn't fit %s: %s", og_file, e)
 
         raise ValueError("Only updating proper index is supported.")
 
@@ -144,16 +148,16 @@ class IndexHelper:
             idx = IndexHelper.get_index(file.get_parent())
             if idx is not None:
                 parent_file_index = float(idx)
-        except (ValueError, TypeError):
-            pass
+        except (ValueError, TypeError) as e:
+            logger.debug("No parent index for sorting %s: %s", file, e)
 
         main_index = float("inf")
         try:
             idx = IndexHelper.get_main_index(file)
             if idx is not None:
                 main_index = float(idx)
-        except (ValueError, TypeError):
-            pass
+        except (ValueError, TypeError) as e:
+            logger.debug("No main index for sorting %s: %s", file, e)
 
         creation_time = float("inf")
         if file.exists():

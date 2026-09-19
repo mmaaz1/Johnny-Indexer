@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 from functools import cache
@@ -7,6 +8,8 @@ import yaml
 
 from johnny_indexer.file import File
 from johnny_indexer.paths import DEFAULTS_CONFIG_PATH, OVERRIDE_CONFIG_PATH
+
+logger = logging.getLogger(__name__)
 
 
 def _read_yaml(path: str) -> dict[str, Any]:
@@ -28,7 +31,9 @@ class ConfigHelper:
             if key in defaults:
                 config[key] = value
             else:
-                print(f"⚠️  Unknown option '{key}' in {OVERRIDE_CONFIG_PATH} is ignored")
+                logger.warning(
+                    "Unknown option '%s' in %s is ignored", key, OVERRIDE_CONFIG_PATH
+                )
         return config
 
     @staticmethod

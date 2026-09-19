@@ -1,13 +1,13 @@
 import argparse
 import os
 import platform
-import re
 import shlex
 import shutil
 import subprocess
 import sys
 import time
 
+from johnny_indexer import log
 from johnny_indexer.paths import LOGS_PATH, PROJECT_ROOT
 
 """
@@ -36,6 +36,9 @@ _TEST_MARKER = "# johnny-indexer-test:"
 _TEST_RESULT_PATH = os.path.join(LOGS_PATH, "schedule_test_result.txt")
 _TEST_LOG_PATH = os.path.join(LOGS_PATH, "schedule_test.log")
 _TEST_LOCK_PATH = os.path.join(LOGS_PATH, "schedule_test.lock")
+# The indexer writes its own log file. This catches output it couldn't log, like a crash
+# before logging is set up.
+_CRON_OUTPUT_PATH = os.path.join(LOGS_PATH, "cron_output.log")
 _TEST_START_TIMEOUT_SECONDS = 120
 _PUSH_TIMEOUT_SECONDS = 60
 _TEST_TIMEOUT_SECONDS = 300
@@ -99,13 +102,8 @@ def _command(cli_args: list[str], log_path: str) -> str:
     )
 
 
-def _log_path(notes_path: str) -> str:
-    log_name = re.sub(r"[^A-Za-z0-9_.-]", "_", os.path.basename(notes_path))
-    return f"logs/fix_indexes_{log_name}.log"
-
-
 def _build_line(notes_path: str, hours: int) -> str:
-    command = _command(["fix", notes_path], _log_path(notes_path))
+    command = _command(["fix", notes_path], _CRON_OUTPUT_PATH)
     return f"{_hours_to_cron(hours)} {command} {_MARKER} {notes_path}"
 
 
@@ -181,17 +179,15 @@ def _run_indexer(notes_path: str) -> None:
         text=True,
         stdin=subprocess.DEVNULL,
     )
-    output = (result.stdout + result.stderr).strip()
-    with open(
-        os.path.join(PROJECT_ROOT, _log_path(notes_path)), "a", encoding="utf-8"
-    ) as f:
-        f.write(output + "\n")
+    if result.returncode == 0:
+        return
 
-    warnings = [line for line in output.splitlines() if line.startswith("⚠️")]
-    if result.returncode != 0:
-        raise RuntimeError(f"The indexer failed:\n{output}")
-    if warnings:
-        raise RuntimeError("The indexer ran with warnings:\n" + "\n".join(warnings))
+    # Without a terminal the indexer only logs to its file, so any output is a crash
+    output = (result.stdout + result.stderr).strip()
+    details = output or f"See {log.log_path(notes_path)}"
+    if result.returncode == log.EXIT_WARNINGS:
+        raise RuntimeError(f"The indexer ran with warnings. {details}")
+    raise RuntimeError(f"The indexer failed. {details}")
 
 
 def _test_through_cron(notes_path: str) -> str:
@@ -267,20 +263,21 @@ def install(notes_path: str, hours: int, skip_test: bool) -> None:
     _write_crontab([*_without_entry(_read_crontab(), marker), line])
 
     if skip_test:
-        print(f"✅ Scheduled every {hours}h: {notes_path}")
+        print(f"Scheduled every {hours}h: {notes_path}")
         print(
-            f"⚠️  Setup not tested. Check {_log_path(notes_path)} after the first run."
+            f"Warning: Setup not tested. Check {log.log_path(notes_path)} after the "
+            "first run."
         )
         return
 
     result = _test_through_cron(notes_path)
     if result != "ok":
         _write_crontab(_without_entry(_read_crontab(), marker))
-        sys.exit(f"❌ Not scheduled. {result}")
+        sys.exit(f"Not scheduled. {result}")
 
-    print(f"✅ Scheduled every {hours}h: {notes_path}")
+    print(f"Scheduled every {hours}h: {notes_path}")
     print("Test run of the indexer through cron succeeded.")
-    print(f"Logs: {LOGS_PATH}")
+    print(f"Logs: {log.log_path(notes_path)}")
 
 
 def status() -> None:

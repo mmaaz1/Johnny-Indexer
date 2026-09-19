@@ -33,7 +33,7 @@ uv run johnny-indexer fix "/path/to/notes"
 ```
 
 ### Recurring (Linux and macOS)
-Schedule the indexer to run every few hours, anchored at 12 pm local time. Logs are written in `logs/fix_indexes_<notes directory name>.log`
+Schedule the indexer to run every few hours, anchored at 12 pm local time.
 
 0. On macOS, notes in iCloud Drive, Documents or Desktop need `/usr/sbin/cron` to have Full Disk Access (System Settings > Privacy & Security).
 1. Schedule the indexer:
@@ -48,6 +48,15 @@ Manage scheduled runs:
 uv run johnny-indexer schedule status
 uv run johnny-indexer schedule uninstall "/path/to/notes"
 ```
+
+### Logging
+- `logs/<notes directory name>.log`: Log of each `fix` and `jdex` run, also shown in the terminal when run from one. Rotated at 1 MB, keeping the 3 most recent old files.
+- `logs/cron_output.log`: Output of scheduled runs that the indexer couldn't log, like a crash on startup
+
+### Exit Codes
+- `0`: Success
+- `1`: The run failed
+- `2`: The run logged warnings
 
 ## Additional Configuration
 Defaults are in `config.defaults.yaml`. To change an option, set it in `config.override.yaml`, which only needs the options you change.
@@ -70,10 +79,13 @@ Excluded files are never renamed, aren't marked **(NOT INDEXED)** in JDex files,
 To generate JDex files without fixing indexes, run `uv run johnny-indexer jdex "/path/to/notes"`.
 
 ### Auto Commit
-The notes directory must be in a git repository. Failures are reported in the output but never stop the indexer.
+The notes directory must be in a git repository. Failures are logged as warnings but never stop the indexer.
 - `auto_commit`: When `true`, commits the notes directory to git before fixing indexes, so every run has a restore point
 - `auto_push`: When `true`, pushes to the notes repository's remote. Commits from an earlier failed push are retried on the next run.
   - Scheduled runs can't use the macOS keychain, so use an SSH remote (eg: `git@github.com:user/notes.git`) with a key that has no passphrase.
+
+### Logging
+- `log_level`: Which messages are shown and written to the log file: `DEBUG`, `INFO` (default), `WARNING` or `ERROR`.
 
 ## Documentation
 

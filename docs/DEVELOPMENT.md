@@ -35,14 +35,24 @@ Dependencies are declared in `pyproject.toml` and locked in `uv.lock`. Commit `u
   - `file.py` - A file or directory. Knows nothing about indexes.
   - `index/` - Index formats, parsing, sorting and fixing. Depends on `file.py`, never the reverse.
   - `paths.py` - Paths to the config files and `logs/`, relative to the repo root
+  - `log.py` - Logging setup for a run
 - `tests/` - Tests
 - `config.defaults.yaml` - Every option and its default. New options must be added here.
 - `config.override.yaml` - The user's optional overrides of the defaults. Gitignored.
-- `logs/` - Logs of scheduled runs. Gitignored and created at runtime.
+- `logs/` - Log files of runs.
 
 The package is installed in editable mode and reads the config files and `logs/` from the repo root, so it's run from its repo checkout.
 
 ## Design and Implementation
+
+### Logging
+
+- `print` is only for the interactive UI (the approval prompt and the `schedule` commands' results). Everything else is logged.
+- Log levels:
+    - `DEBUG`: Details for troubleshooting, like exceptions that are expected and handled
+    - `INFO`: Changes made to the notes, like renames, link updates and commits
+    - `WARNING`: Something was skipped, but the run continued
+    - `ERROR`: The run stopped
 
 ### Glossary
 

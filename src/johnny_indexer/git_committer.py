@@ -1,3 +1,4 @@
+import logging
 import os
 import subprocess
 from collections.abc import Callable
@@ -7,6 +8,8 @@ from johnny_indexer.config import ConfigHelper
 from johnny_indexer.file import File
 
 _PUSH_TIMEOUT_SECONDS = 60
+
+logger = logging.getLogger(__name__)
 
 
 class GitCommitter:
@@ -32,7 +35,7 @@ class GitCommitter:
                 raise ValueError(f"must be true or false, got '{value}'")
             return value
         except Exception as e:
-            print(f"⚠️  {key} skipped: {e}")
+            logger.warning("%s skipped: %s", key, e)
             return False
 
     @staticmethod
@@ -40,7 +43,7 @@ class GitCommitter:
         try:
             action(repo_path)
         except Exception as e:
-            print(f"⚠️  {name} skipped: {e}")
+            logger.warning("%s skipped: %s", name, e)
 
     @staticmethod
     def _commit(repo_path: str) -> None:
@@ -50,12 +53,13 @@ class GitCommitter:
         message = f"Auto-commit: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
         GitCommitter._git(repo_path, "add", "-A", ".")
         GitCommitter._git(repo_path, "commit", "-m", message)
-        print(f"Committed notes before indexing: {message}")
+        logger.info("Committed notes before indexing: %s", message)
 
     @staticmethod
     def _push(repo_path: str) -> None:
         # Runs even without a new commit, so commits from an earlier failed push are retried
         GitCommitter._git(repo_path, "push", "--quiet", timeout=_PUSH_TIMEOUT_SECONDS)
+        logger.info("Pushed notes")
 
     @staticmethod
     def _git(repo_path: str, *args: str, timeout: float | None = None) -> str:

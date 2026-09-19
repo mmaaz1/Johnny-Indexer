@@ -1,3 +1,4 @@
+import logging
 import re
 
 from johnny_indexer.config import ConfigHelper
@@ -7,6 +8,8 @@ from johnny_indexer.file import File
 # optional heading/block (#) or alias (|), then the closing brackets. Requiring one of these
 # after the name stops [[12.33 Notes]] from also matching [[12.33 Notes archive]].
 _LINK_SUFFIX_PATTERN = r"((?:\.md)?(?:[#|][^\]]*)?)\]\]"
+
+logger = logging.getLogger(__name__)
 
 
 class ObsidianFixer:
@@ -40,7 +43,7 @@ class ObsidianFixer:
                 ObsidianFixer.update_wikilinks(child_file, old_file_ref, new_file_ref)
 
     @staticmethod
-    def update_wikilinks_batch(file: File, file_changes: dict[File, File]) -> None:
+    def update_wikilinks_batch(file: File, file_changes: dict[File, File]) -> int:
         """
         Updates wiki-style links in Markdown files for multiple file renames in a single tree traversal.
         This is more efficient than calling update_wikilinks() multiple times, as it scans the tree
@@ -51,17 +54,22 @@ class ObsidianFixer:
             file_changes: Dictionary mapping old_file_ref -> new_file_ref for all pending renames
 
         Returns:
-            None
+            The number of files whose links were updated
         """
 
         if ConfigHelper.excluded_from_indexing(file):
-            return
+            return 0
 
         if file.is_file() and file.get_extension() in [".md"]:
-            ObsidianFixer._update_wikilinks_for_file_batch(file, file_changes)
-        elif file.is_dir():
-            for child_file in file.get_children():
+            return int(
+                ObsidianFixer._update_wikilinks_for_file_batch(file, file_changes)
+            )
+        if file.is_dir():
+            return sum(
                 ObsidianFixer.update_wikilinks_batch(child_file, file_changes)
+                for child_file in file.get_children()
+            )
+        return 0
 
     @staticmethod
     def _update_wikilinks_for_file(
@@ -83,12 +91,12 @@ class ObsidianFixer:
         if old_content != updated_content:
             with open(file.get_abs_path(), "w", encoding="utf-8") as f:
                 f.write(updated_content)
-            print(f"Updated references of {old_file_ref.name} in: {file}")
+            logger.info("Updated references of %s in: %s", old_file_ref.name, file)
 
     @staticmethod
     def _update_wikilinks_for_file_batch(
         file: File, file_changes: dict[File, File]
-    ) -> None:
+    ) -> bool:
         """
         Updates wiki-style links in a single file for all pending renames.
         This applies all replacements in a single regex pass instead of multiple passes.
@@ -96,13 +104,16 @@ class ObsidianFixer:
         Args:
             file: The markdown file to update
             file_changes: Dictionary mapping old_file_ref -> new_file_ref
+
+        Returns:
+            Whether the file was updated
         """
         name_changes = {
             old_file_ref.get_name_without_extension(): new_file_ref.get_name_without_extension()
             for old_file_ref, new_file_ref in file_changes.items()
         }
         if not name_changes:
-            return
+            return False
 
         # Match every old name in one pass so a link is never renamed twice when renames
         # chain (eg: 12.33 -> 12.34 and 12.34 -> 12.35). Longest names first so a name
@@ -124,7 +135,11 @@ class ObsidianFixer:
         updated_content = re.sub(pattern, replace, content)
 
         # Write file once if any changes were made
-        if updated_content != content:
-            with open(file.get_abs_path(), "w", encoding="utf-8") as f:
-                f.write(updated_content)
-            print(f"Updated references in {file}: {', '.join(sorted(updated_names))}")
+        if updated_content == content:
+            return False
+        with open(file.get_abs_path(), "w", encoding="utf-8") as f:
+            f.write(updated_content)
+        logger.info(
+            "Updated references in %s: %s", file, ", ".join(sorted(updated_names))
+        )
+        return True

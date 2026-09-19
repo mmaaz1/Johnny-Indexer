@@ -1,6 +1,8 @@
+import logging
 import sys
 from collections import deque
 
+from johnny_indexer import log
 from johnny_indexer.config import ConfigHelper as ch
 from johnny_indexer.create_jdex import create_jdex
 from johnny_indexer.file import File
@@ -32,6 +34,8 @@ Key Components:
 Usage:
     johnny-indexer fix <notes_path>
 """
+
+logger = logging.getLogger(__name__)
 
 
 class ProposedChange:
@@ -84,13 +88,18 @@ def should_prompt() -> bool:
     if not ch.load_from_config("prompt_for_approval"):
         return False
     if not sys.stdin.isatty():
-        print("Non-interactive run: applying renames without prompting.")
+        logger.info("Non-interactive run: applying renames without prompting.")
         return False
     return True
 
 
-def bfs_fix_indexes(root_file: File, area_files: list[File], prompt: bool) -> None:
+def bfs_fix_indexes(
+    root_file: File, area_files: list[File], prompt: bool
+) -> tuple[int, int]:
+    """Returns the number of renamed files and of files whose links were updated."""
     queue: deque[File] = deque(area_files)
+    renamed_count = 0
+    link_update_count = 0
 
     while queue:
         proposed_changes: list[ProposedChange] = []
@@ -105,32 +114,51 @@ def bfs_fix_indexes(root_file: File, area_files: list[File], prompt: bool) -> No
 
         proposed_changes.sort(key=lambda proposal: ih.sort_key(proposal.new_file))
 
+        # Copied before renaming, since a rename updates old_file to the new name
+        file_changes = {
+            proposal.old_file.create_copy(): proposal.new_file
+            for proposal in proposed_changes
+        }
+
         for proposal in proposed_changes:
             old_file = proposal.old_file
             new_file = proposal.new_file
 
             if new_file.exists():
-                print(f"\n❌ CONFLICT: '{new_file.name}' already exists")
+                logger.error(
+                    "Can't rename '%s': '%s' already exists", old_file, new_file.name
+                )
                 sys.exit(1)
 
             if prompt:
                 prompt_user(old_file, new_file)
 
+            logger.info("Renaming %s => %s", old_file, new_file.name)
             old_file.rename(new_file)
+            renamed_count += 1
 
         # Batch update wiki links for all changes at once, after all renames applied
-        if ch.load_from_config("fix_wikilinks") and proposed_changes:
-            file_changes = {
-                proposal.old_file: proposal.new_file for proposal in proposed_changes
-            }
-            of.update_wikilinks_batch(root_file, file_changes)
+        if ch.load_from_config("fix_wikilinks") and file_changes:
+            link_update_count += of.update_wikilinks_batch(root_file, file_changes)
+
+    return renamed_count, link_update_count
 
 
 def fix_indexes(root_path: str) -> None:
+    logger.info("Fixing indexes in %s", root_path)
     root_file = File.from_abs_path(root_path, -1)
     areas = ih.get_areas_in_dir(root_file)
 
     GitCommitter.auto_commit(root_file)
-    bfs_fix_indexes(root_file, areas, should_prompt())
+    renamed_count, link_update_count = bfs_fix_indexes(
+        root_file, areas, should_prompt()
+    )
     if ch.load_from_config("generate_jdex"):
         create_jdex(root_file)
+
+    logger.info(
+        "Done: renamed %d files, updated links in %d files, %d warnings",
+        renamed_count,
+        link_update_count,
+        log.warning_count(),
+    )

@@ -1,8 +1,11 @@
+import logging
 import os
 
 from johnny_indexer.config import ConfigHelper as ch
 from johnny_indexer.file import File
 from johnny_indexer.index.helper import IndexHelper as ih
+
+logger = logging.getLogger(__name__)
 
 
 def _should_exclude(file: File) -> bool:
@@ -71,6 +74,7 @@ def _generate_markdown_index(file: File) -> None:
 
     with open(output_file.get_abs_path(), "w", encoding="utf-8") as f:
         f.write(markdown_content)
+    logger.debug("Wrote %s", output_file)
 
 
 def create_jdex(root_file: File) -> None:
@@ -78,7 +82,6 @@ def create_jdex(root_file: File) -> None:
 
     # Areas first, so the root lists their current index files rather than stale ones
     files_to_index = [*area_files, root_file]
-    print("Updating all JIndexes.")
     for file in files_to_index:
         _generate_markdown_index(file)
-    print("JIndexes Updated.")
+    logger.info("JDex files updated")
