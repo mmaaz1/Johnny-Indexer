@@ -43,7 +43,7 @@ class IndexFixer:
             for sibling in file.get_siblings()
             if not ch.excluded_from_indexing(sibling)
         ]
-        indexed_files_in_dir.sort()
+        indexed_files_in_dir.sort(key=ih.sort_key)
 
         # ToDo: We need to validate that only 10 areas and categories, or 100 topics, subtopics and extensions can exist
 
@@ -62,13 +62,13 @@ class IndexFixer:
         elif ih.is_subtopic(parent_file, proper=True):
             return ""
         elif ih.is_index(parent_file, proper=True):
-            index_result = parent_file.index()
+            index_result = ih.get_index(parent_file)
             if index_result is None:
                 return ""
             return index_result
         else:
             raise ValueError(
-                f"Invalid parent index: File={child_file.name}, ParentIndex={parent_file.index()}"
+                f"Invalid parent index: File={child_file.name}, ParentIndex={ih.get_index(parent_file)}"
             )
 
     @staticmethod

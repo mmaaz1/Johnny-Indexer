@@ -37,7 +37,7 @@ def _traverse_dir(parent_file: File, base_level: int) -> str:
     Recursively traverse the directory and generate markdown content.
     """
     markdown_content = ""
-    for file in parent_file.get_children():
+    for file in ih.sorted_files(parent_file.get_children()):
         if _should_exclude(file):
             continue
         markdown_content += _print_line(file, base_level)

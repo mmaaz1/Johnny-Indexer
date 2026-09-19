@@ -16,7 +16,7 @@ class ObsidianFixer:
     """
 
     @staticmethod
-    def update_weblinks(file: File, old_file_ref: File, new_file_ref: File) -> None:
+    def update_wikilinks(file: File, old_file_ref: File, new_file_ref: File) -> None:
         """
         Updates wiki-style links in Markdown files, replacing references
         to an old_file_ref with references to new_file_ref.
@@ -34,16 +34,16 @@ class ObsidianFixer:
             return
 
         if file.is_file() and file.get_extension() in [".md"]:
-            ObsidianFixer._update_weblinks_for_file(file, old_file_ref, new_file_ref)
+            ObsidianFixer._update_wikilinks_for_file(file, old_file_ref, new_file_ref)
         elif file.is_dir():
             for child_file in file.get_children():
-                ObsidianFixer.update_weblinks(child_file, old_file_ref, new_file_ref)
+                ObsidianFixer.update_wikilinks(child_file, old_file_ref, new_file_ref)
 
     @staticmethod
-    def update_weblinks_batch(file: File, file_changes: dict[File, File]) -> None:
+    def update_wikilinks_batch(file: File, file_changes: dict[File, File]) -> None:
         """
         Updates wiki-style links in Markdown files for multiple file renames in a single tree traversal.
-        This is more efficient than calling update_weblinks() multiple times, as it scans the tree
+        This is more efficient than calling update_wikilinks() multiple times, as it scans the tree
         only once and applies all replacements in a single pass per file.
 
         Args:
@@ -58,13 +58,13 @@ class ObsidianFixer:
             return
 
         if file.is_file() and file.get_extension() in [".md"]:
-            ObsidianFixer._update_weblinks_for_file_batch(file, file_changes)
+            ObsidianFixer._update_wikilinks_for_file_batch(file, file_changes)
         elif file.is_dir():
             for child_file in file.get_children():
-                ObsidianFixer.update_weblinks_batch(child_file, file_changes)
+                ObsidianFixer.update_wikilinks_batch(child_file, file_changes)
 
     @staticmethod
-    def _update_weblinks_for_file(
+    def _update_wikilinks_for_file(
         file: File, old_file_ref: File, new_file_ref: File
     ) -> None:
         old_name = old_file_ref.get_name_without_extension()
@@ -86,7 +86,7 @@ class ObsidianFixer:
             print(f"Updated references of {old_file_ref.name} in: {file}")
 
     @staticmethod
-    def _update_weblinks_for_file_batch(
+    def _update_wikilinks_for_file_batch(
         file: File, file_changes: dict[File, File]
     ) -> None:
         """

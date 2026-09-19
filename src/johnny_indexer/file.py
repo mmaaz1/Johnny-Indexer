@@ -1,21 +1,10 @@
 import copy
 import os
-from functools import total_ordering
-from typing import TYPE_CHECKING
-
-from johnny_indexer.index.helper import IndexHelper as ih
-
-# TODO: Refactor imports to eliminate circular dependency between File and IndexHelper
-# Currently, File imports IndexHelper, and IndexHelper imports types from index.format_config.
-# Consider moving index-related logic to a separate module or reorganizing the import structure.
-if TYPE_CHECKING:
-    from johnny_indexer.index.format_config import ProperIndexType
 
 
-@total_ordering  # Automatically fills in all comparison methods
 class File:
     """
-    This class contains information about a file and its index, or the lack thereof.
+    A file or directory in the notes. Knows nothing about indexes, see IndexHelper.
     """
 
     name: str
@@ -72,24 +61,14 @@ class File:
             )
             child_files.append(child_file)
 
-        return sorted(child_files)
+        return child_files
 
     def get_siblings(self) -> list["File"]:
-        return sorted(self.get_parent().get_children())
+        return self.get_parent().get_children()
 
     ### Copy Functions
     def copy_from(self, other_file: "File") -> None:
         self.__dict__.update(other_file.__dict__)
-
-    ### Index Functions
-    def index(self) -> str | None:
-        return ih.get_index(self)
-
-    def index_type(self) -> "ProperIndexType":
-        return ih.get_index_type(self)
-
-    def is_indexed(self, proper: bool) -> bool:
-        return ih.is_index(self, proper)
 
     ### Getters
     def get_abs_path(self) -> str:
@@ -126,31 +105,6 @@ class File:
         os.rename(self.get_abs_path(), new_file.get_abs_path())
         self.copy_from(new_file)
 
-    @staticmethod
-    def index_sort_key(file: "File") -> tuple[float, float, float]:
-        parent_file_index = float("inf")
-        try:
-            parent_file = file.get_parent()
-            idx = ih.get_index(parent_file)
-            if idx is not None:
-                parent_file_index = float(idx)
-        except (ValueError, TypeError):
-            pass
-
-        main_index = float("inf")
-        try:
-            idx = ih.get_main_index(file)
-            if idx is not None:
-                main_index = float(idx)
-        except (ValueError, TypeError):
-            pass
-
-        creation_time = float("inf")
-        if file.exists():
-            creation_time = file.get_creation_time()
-
-        return (parent_file_index, main_index, creation_time)
-
     ### Class functions
     def __hash__(self) -> int:
         return hash(self.get_abs_path())
@@ -159,14 +113,6 @@ class File:
         if isinstance(other, File):
             return self.__dict__ == other.__dict__
         return NotImplemented
-
-    def __lt__(self, other: object) -> bool:
-        """Compare files by index, falling back to creation time."""
-        if not isinstance(other, File):
-            return NotImplemented
-
-        # Use 'index_sort_key' method as default
-        return File.index_sort_key(self) < File.index_sort_key(other)
 
     def __str__(self) -> str:
         return f"{self.name}"

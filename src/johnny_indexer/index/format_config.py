@@ -3,10 +3,8 @@ import re
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from johnny_indexer.file import File
+from johnny_indexer.file import File
 
 """
 This file contains the source of truth for my index formatting system. What is a valid proper/improper area/category, etc.
@@ -207,27 +205,27 @@ class IndexConfigurator:
         ]
         self._separator = separator
 
-    def validate(self, file: "File") -> bool:
+    def validate(self, file: File) -> bool:
         index = self._get_index_without_validation(file)
         if index is None:
             return False
         if file.level not in self._levels:
             return False
-        if file.get_parent().index_type() not in self._parent_index_types:
+        if get_index_type(file.get_parent()) not in self._parent_index_types:
             return False
 
         return any(re.match(pattern, index) for pattern in self._patterns)
 
-    def get_index(self, file: "File") -> str | None:
+    def get_index(self, file: File) -> str | None:
         index = self._get_index_without_validation(file)
         if not self.validate(file):
             return None
         return index
 
-    def get_parent_index(self, file: "File") -> str | None:
+    def get_parent_index(self, file: File) -> str | None:
         return self._get_index_portions(file)["p_idx"]
 
-    def get_main_index(self, file: "File") -> str | None:
+    def get_main_index(self, file: File) -> str | None:
         index_portion = self._get_index_portions(file)
         if index_portion["s_idx"] is None:
             return index_portion["m_idx"]
@@ -235,14 +233,14 @@ class IndexConfigurator:
             return f"{index_portion['m_idx']}.{index_portion['s_idx']}"
 
     def update_index_from_portions(
-        self, file: "File", parent_index: str, main_index: str
+        self, file: File, parent_index: str, main_index: str
     ) -> None:
         new_index = parent_index + self._separator + main_index
         self.update_index(file, new_index)
 
-    def update_index(self, file: "File", new_index: str) -> None:
+    def update_index(self, file: File, new_index: str) -> None:
         if self.validate(file):
-            old_index = file.index()
+            old_index = self._get_index_without_validation(file)
             assert old_index is not None  # Guaranteed by validate() returning True
             file.name = file.name.replace(old_index, new_index, 1)
         else:
@@ -253,7 +251,7 @@ class IndexConfigurator:
                 f"Only updating into proper indexes is supported. File: {file}"
             )
 
-    def _get_index_portions(self, file: "File") -> dict[str, str | None]:
+    def _get_index_portions(self, file: File) -> dict[str, str | None]:
         if not self.validate(file):
             return {"p_idx": None, "m_idx": None, "s_idx": None}
 
@@ -272,10 +270,27 @@ class IndexConfigurator:
             }
         return {"p_idx": None, "m_idx": None, "s_idx": None}
 
-    def _get_index_without_validation(self, file: "File") -> str | None:
+    def _get_index_without_validation(self, file: File) -> str | None:
         parts = file.name.split(_INDEX_SEPARATOR)
         return parts[0] if parts else None
 
 
 # Parents
 PROPER_NOT_INDEXED = ProperIndexType(BaseIndexType.NOT_INDEXED, proper=False)
+
+
+def get_index_type(file: File) -> ProperIndexType:
+    """
+    The first index type whose config validates the file, preferring proper types.
+    Lives here, not in IndexHelper, since validating a file needs its parent's type.
+    """
+    for proper in [True, False]:
+        for base_index_type in BaseIndexType:
+            if base_index_type == BaseIndexType.NOT_INDEXED:
+                continue
+
+            index_type = ProperIndexType(base_index_type, proper)
+            if index_type.get_index_config().validate(file):
+                return index_type
+
+    return PROPER_NOT_INDEXED

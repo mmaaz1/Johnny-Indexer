@@ -15,9 +15,10 @@ It also comes with some additional goodies:
    python3 -m venv venv
    venv/bin/pip install -e .
    ```
-1. Create your config from the example, then adjust it (see [Additional Configuration](#additional-configuration)):
-   ```bash
-   cp config.example.yaml config.yaml
+1. Optionally, override the default config in `config.override.yaml` (see [Additional Configuration](#additional-configuration)). Eg:
+   ```yaml
+   auto_commit: true
+   auto_push: true
    ```
 
 ### Knowledge Base Setup
@@ -50,15 +51,15 @@ venv/bin/johnny-indexer schedule uninstall "/path/to/notes"
 ```
 
 ## Additional Configuration
-These options are set in `config.yaml`.
+Defaults are in `config.defaults.yaml`. To change an option, set it in `config.override.yaml`, which only needs the options you change.
 
 ### Exclude Files
 Excluded files are never renamed, aren't marked **(NOT INDEXED)** in JDex files, and aren't scanned for links.
 - `prefixes_excluded_from_indexing`: File name prefixes to exclude (eg: `.` for hidden files)
 - `patterns_excluded_from_indexing`: File name regex patterns to exclude (eg: `^\d{4}-\d{2}-\d{2}` for dated notes)
 
-### Fix Obsidian Weblink
-- `fix_weblinks`: When `true`, updates Obsidian wiki links (`[[filename]]`) in Markdown files to point to renamed files
+### Fix Obsidian Wiki Links
+- `fix_wikilinks`: When `true`, updates Obsidian wiki links (`[[filename]]`) in Markdown files to point to renamed files
 
 ### Prompt User Before Acting
 - `prompt_for_approval`: When `true`, asks for confirmation before each rename. Answering `n` stops the run.

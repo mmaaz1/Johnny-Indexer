@@ -1,25 +1,41 @@
 import os
 import re
+from functools import cache
 from typing import Any
 
 import yaml
 
 from johnny_indexer.file import File
-from johnny_indexer.paths import CONFIG_PATH
+from johnny_indexer.paths import DEFAULTS_CONFIG_PATH, OVERRIDE_CONFIG_PATH
+
+
+def _read_yaml(path: str) -> dict[str, Any]:
+    with open(path) as config_file:
+        return yaml.safe_load(config_file) or {}
 
 
 class ConfigHelper:
     @staticmethod
-    def load_from_config(key: str) -> Any:
-        if not os.path.exists(CONFIG_PATH):
-            raise FileNotFoundError(
-                f"{CONFIG_PATH} not found. Copy config.example.yaml to config.yaml."
-            )
+    @cache
+    def _load() -> dict[str, Any]:
+        """Reads the defaults once, with the optional overrides on top."""
+        defaults = _read_yaml(DEFAULTS_CONFIG_PATH)
+        if not os.path.exists(OVERRIDE_CONFIG_PATH):
+            return defaults
 
-        with open(CONFIG_PATH) as config_file:
-            config = yaml.safe_load(config_file)
+        config = dict(defaults)
+        for key, value in _read_yaml(OVERRIDE_CONFIG_PATH).items():
+            if key in defaults:
+                config[key] = value
+            else:
+                print(f"⚠️  Unknown option '{key}' in {OVERRIDE_CONFIG_PATH} is ignored")
+        return config
+
+    @staticmethod
+    def load_from_config(key: str) -> Any:
+        config = ConfigHelper._load()
         if key not in config:
-            raise ValueError(f"Invalid key {key} in {CONFIG_PATH}")
+            raise ValueError(f"Invalid config key {key}")
 
         return config[key]
 

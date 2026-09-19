@@ -5,5 +5,6 @@ import os
 PROJECT_ROOT = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 )
-CONFIG_PATH = os.path.join(PROJECT_ROOT, "config.yaml")
+DEFAULTS_CONFIG_PATH = os.path.join(PROJECT_ROOT, "config.defaults.yaml")
+OVERRIDE_CONFIG_PATH = os.path.join(PROJECT_ROOT, "config.override.yaml")
 LOGS_PATH = os.path.join(PROJECT_ROOT, "logs")

@@ -12,20 +12,22 @@ from johnny_indexer.obsidian_fixer import ObsidianFixer as of
 """
 fix_indexes.py
 
-This module manages and corrects file indexes in a hierarchical directory system. It ensures that files are consistently and properly indexed, enabling better organization and retrieval. The script:
+Fixes the indexes of files in a hierarchical directory system, so files are consistently
+and properly indexed. It:
 
-1. Computes parent and main indexes for files based on their location in the hierarchy.
-2. Constructs new indexes by appending parent and main indexes with appropriate separators.
-3. Proposes updates for file names when their indexes are incorrect.
-4. Interactively prompts the user to approve renaming of files to maintain integrity.
-5. Uses a breadth-first search to process files iteratively, starting from the root directory.
+1. Auto-commits the notes to git, if enabled.
+2. Walks the hierarchy breadth-first, one level at a time, starting from the Areas.
+3. Proposes a rename for each file whose index doesn't match its expected index.
+4. Optionally prompts the user to approve each rename, then applies them and updates
+   wiki links to the renamed files, if enabled.
+5. Regenerates JDex files, if enabled.
 
 Key Components:
 - ProposedChange: Tracks old and new file states during index corrections.
-- compute_parent_index: Retrieves the index of a file's parent.
-- compute_main_index: Assigns a unique and properly formatted main index to a file.
-- append_indexes: Combines parent and main indexes to form the complete index.
+- propose_index_update: Proposes a rename if a file's index is incorrect.
 - bfs_fix_indexes: Performs breadth-first search to apply index corrections across files.
+- fix_indexes: Entry point for the `fix` command.
+- IndexFixer (index/fixer.py): Computes the expected parent and main indexes of a file.
 
 Usage:
     johnny-indexer fix <notes_path>
@@ -55,7 +57,7 @@ def prompt_user(old_file: File, new_file: File) -> None:
         print("Siblings:")
         for iter_file in [
             sibling
-            for sibling in old_file.get_siblings()
+            for sibling in ih.sorted_files(old_file.get_siblings())
             if not ch.excluded_from_indexing(sibling)
         ]:
             if iter_file != old_file:
@@ -94,14 +96,14 @@ def bfs_fix_indexes(root_file: File, area_files: list[File], prompt: bool) -> No
         proposed_changes: list[ProposedChange] = []
         for _ in range(len(queue)):
             parent_file = queue.popleft()
-            for file in parent_file.get_children():
+            for file in ih.sorted_files(parent_file.get_children()):
                 if file.is_dir():
                     queue.append(file)
                 proposal = propose_index_update(file)
                 if proposal is not None:
                     proposed_changes.append(proposal)
 
-        proposed_changes.sort(key=lambda proposal: proposal.new_file)
+        proposed_changes.sort(key=lambda proposal: ih.sort_key(proposal.new_file))
 
         for proposal in proposed_changes:
             old_file = proposal.old_file
@@ -116,12 +118,12 @@ def bfs_fix_indexes(root_file: File, area_files: list[File], prompt: bool) -> No
 
             old_file.rename(new_file)
 
-        # Batch update weblinks for all changes at once, after all renames applied
-        if ch.load_from_config("fix_weblinks") and proposed_changes:
+        # Batch update wiki links for all changes at once, after all renames applied
+        if ch.load_from_config("fix_wikilinks") and proposed_changes:
             file_changes = {
                 proposal.old_file: proposal.new_file for proposal in proposed_changes
             }
-            of.update_weblinks_batch(root_file, file_changes)
+            of.update_wikilinks_batch(root_file, file_changes)
 
 
 def fix_indexes(root_path: str) -> None:

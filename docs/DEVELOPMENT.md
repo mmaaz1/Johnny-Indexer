@@ -6,7 +6,6 @@ Create the virtual environment and install the package in editable mode, with de
 
 ```bash
 make install
-cp config.example.yaml config.yaml
 ```
 
 Dependencies are declared in `pyproject.toml`. Runtime dependencies go in `dependencies`, dev tools in the `dev` extra.
@@ -16,13 +15,15 @@ Dependencies are declared in `pyproject.toml`. Runtime dependencies go in `depen
 - `src/johnny_indexer/` - The package
   - `__main__.py` - The `johnny-indexer` CLI (`fix`, `jdex`, `schedule`)
   - `fix_indexes.py`, `create_jdex.py`, `schedule.py` - One module per command
-  - `index/` - Index formats, parsing and fixing
-  - `paths.py` - Paths to `config.yaml` and `logs/`, relative to the repo root
+  - `file.py` - A file or directory. Knows nothing about indexes.
+  - `index/` - Index formats, parsing, sorting and fixing. Depends on `file.py`, never the reverse.
+  - `paths.py` - Paths to the config files and `logs/`, relative to the repo root
 - `tests/` - Tests
-- `config.example.yaml` - Default config. The user's `config.yaml` is gitignored.
+- `config.defaults.yaml` - Every option and its default. New options must be added here.
+- `config.override.yaml` - The user's optional overrides of the defaults. Gitignored.
 - `logs/` - Logs of scheduled runs. Gitignored and created at runtime.
 
-The package is installed in editable mode and reads `config.yaml` and `logs/` from the repo root, so it's run from its repo checkout.
+The package is installed in editable mode and reads the config files and `logs/` from the repo root, so it's run from its repo checkout.
 
 ## Checks and Formatting
 

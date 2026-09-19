@@ -9,7 +9,7 @@ __pycache__
 .idea
 
 # Local config and logs
-config.yaml
+config.override.yaml
 logs/
 
 venv
