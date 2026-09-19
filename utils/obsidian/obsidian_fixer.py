@@ -3,6 +3,11 @@ import re
 from utils.config.config_helper import ConfigHelper
 from utils.file.file import File
 
+# Matches the rest of a wiki link after the file name: an optional .md extension, then an
+# optional heading/block (#) or alias (|), then the closing brackets. Requiring one of these
+# after the name stops [[12.33 Notes]] from also matching [[12.33 Notes archive]].
+_LINK_SUFFIX_PATTERN = r"((?:\.md)?(?:[#|][^\]]*)?)\]\]"
+
 
 class ObsidianFixer:
     """
@@ -65,9 +70,7 @@ class ObsidianFixer:
         old_name = old_file_ref.get_name_without_extension()
         new_name = new_file_ref.get_name_without_extension()
 
-        # Pattern to match [[old_name*]] where * is any content before closing brackets
-        escaped_old_name = re.escape(old_name)
-        pattern = rf"\[\[{escaped_old_name}([^\]]*)\]\]"
+        pattern = rf"\[\[{re.escape(old_name)}{_LINK_SUFFIX_PATTERN}"
 
         # Replacement preserves whatever was after the name
         replacement = f"[[{new_name}\\1]]"
@@ -94,31 +97,34 @@ class ObsidianFixer:
             file: The markdown file to update
             file_changes: Dictionary mapping old_file_ref -> new_file_ref
         """
+        name_changes = {
+            old_file_ref.get_name_without_extension(): new_file_ref.get_name_without_extension()
+            for old_file_ref, new_file_ref in file_changes.items()
+        }
+        if not name_changes:
+            return
+
+        # Match every old name in one pass so a link is never renamed twice when renames
+        # chain (eg: 12.33 -> 12.34 and 12.34 -> 12.35). Longest names first so a name
+        # that is a prefix of another doesn't win the alternation.
+        old_names = sorted(name_changes, key=len, reverse=True)
+        alternation = "|".join(re.escape(name) for name in old_names)
+        pattern = rf"\[\[({alternation}){_LINK_SUFFIX_PATTERN}"
+
+        updated_names: set[str] = set()
+
+        def replace(match: re.Match[str]) -> str:
+            old_name, suffix = match.group(1), match.group(2)
+            updated_names.add(old_name)
+            return f"[[{name_changes[old_name]}{suffix}]]"
+
         with open(file.get_abs_path(), encoding="utf-8") as f:
             content = f.read()
 
-        original_content = content
-        updated_files: list[str] = []
-
-        # Apply all replacements in sequence
-        for old_file_ref, new_file_ref in file_changes.items():
-            old_name = old_file_ref.get_name_without_extension()
-            new_name = new_file_ref.get_name_without_extension()
-
-            # Pattern to match [[old_name*]] where * is any content before closing brackets
-            escaped_old_name = re.escape(old_name)
-            pattern = rf"\[\[{escaped_old_name}([^\]]*)\]\]"
-
-            # Replacement preserves whatever was after the name
-            replacement = f"[[{new_name}\\1]]"
-
-            new_content = re.sub(pattern, replacement, content)
-            if new_content != content:
-                content = new_content
-                updated_files.append(old_file_ref.name)
+        updated_content = re.sub(pattern, replace, content)
 
         # Write file once if any changes were made
-        if content != original_content:
+        if updated_content != content:
             with open(file.get_abs_path(), "w", encoding="utf-8") as f:
-                f.write(content)
-            print(f"Updated references in {file}: {', '.join(updated_files)}")
+                f.write(updated_content)
+            print(f"Updated references in {file}: {', '.join(sorted(updated_names))}")

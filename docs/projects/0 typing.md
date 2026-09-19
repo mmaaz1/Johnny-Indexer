@@ -99,7 +99,7 @@
   - [x] All checks pass: 0 errors, 0 warnings
 
 - [x] **Type related scripts**
-  - [x] `related_scripts/commit_daily.py` - Fully typed with Tuple return types
+  - [x] `helper_scripts/commit_daily.py` - Fully typed with Tuple return types
   - [x] All checks pass: 0 errors, 0 warnings
 
 - [x] **Run type checker on Phase 3 modules**
@@ -147,7 +147,7 @@
 6. ✅ utils/index/index_fixer.py
 7. ✅ create_jdex.py
 8. ✅ fix_indexes.py
-9. ✅ related_scripts/commit_daily.py
+9. ✅ helper_scripts/commit_daily.py
 10. ✅ tests/test_index_helper.py
 
 **Outstanding Items:**

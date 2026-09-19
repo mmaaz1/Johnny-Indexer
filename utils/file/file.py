@@ -117,7 +117,7 @@ class File:
 
     def get_creation_time(self) -> float:
         stat = os.stat(self.get_abs_path())
-        return getattr(stat, 'st_birthtime', stat.st_mtime)
+        return getattr(stat, "st_birthtime", stat.st_mtime)
 
     def exists(self) -> bool:
         return os.path.exists(self.get_abs_path())

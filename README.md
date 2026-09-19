@@ -7,18 +7,23 @@ The Johnny Indexer is a Python-based tool designed to automate the indexing of f
 
 - **Automatic Indexing**: Analyzes and updates file indexes based on their hierarchical position.
 - **Jdex Generation**: Produces a Markdown file summarizing the directory structure and indexing status.
-- **File Exclusion**: Allows users to exclude files
-- **Interactive Index Correction**: Prompts users to confirm changes for file names that are incorrectly indexed.
-- **Automatic File Link Fixing**: Fixes all the file content
 
-### Additional Scripts
+### Helper Scripts
 - **Daily Committer**: Script that can be used to commmit changes to your documentation daily
 
-### Configuration
-- `prefixes_excluded_from_indexing`: File prefixes that are ignored by the indexer
-- `patterns_excluded_from_indexing`: File regex patterns that are ignored by the indexer
-- `fix_weblinks`: Whether the script should fix file weblinks at the end of indexing fixes
-- `prompt_for_approval`: Whether the should should prompt user for approval before each fix
+### Additional Configuration
+These options are set in `config.yaml`.
+
+#### Exclude Files
+Excluded files are never renamed, aren't marked **(NOT INDEXED)** in JDex files, and aren't scanned for links.
+- `prefixes_excluded_from_indexing`: File name prefixes to exclude (eg: `.` for hidden files)
+- `patterns_excluded_from_indexing`: File name regex patterns to exclude (eg: `^\d{4}-\d{2}-\d{2}` for dated notes)
+
+#### Fix Obsidian Weblink
+- `fix_weblinks`: When `true`, updates Obsidian wiki links (`[[filename]]`) in Markdown files to point to renamed files
+
+#### Prompt User Before Acting
+- `prompt_for_approval`: When `true`, asks for confirmation before each rename. Answering `n` stops the run.
 
 ## Knowledge Base Setup
 
@@ -35,7 +40,7 @@ python fix_indexes.py <path_to_directory>
 Here is a sample cron job to fix indexes and create commit:
 ```bash
 */30 * * * * SCRIPT_DIR_PATH/.venv/bin/python3 SCRIPT_DIR_PATH/fix_indexes.py NOTES_PATH >> SCRIPT_DIR_PATH/logs/fix_indexes_MaazWorkNotes.log 2>&1
-*/5 * * * * SCRIPT_DIR_PATH/.venv/bin/python3 SCRIPT_DIR_PATH/related_scripts/commit_daily.py NOTES_PATH >> SCRIPT_DIR_PATH/logs/commit_daily.py.log 2>&1
+*/5 * * * * SCRIPT_DIR_PATH/.venv/bin/python3 SCRIPT_DIR_PATH/helper_scripts/commit_daily.py NOTES_PATH >> SCRIPT_DIR_PATH/logs/commit_daily.py.log 2>&1
 ```
 
 ## Johnny Index System Specification
@@ -121,11 +126,9 @@ Files are processed using a breadth-first search (BFS) algorithm:
    - Combine parent index + separator + main index to create expected full index
    - Identify files where actual index doesn't match expected index
 1. **Sort & Present**: Sort proposed changes alphabetically by new filename
-1. **User Confirmation** (if enabled): Prompt user to accept (`y`) or reject (`n`) changes
-1. **Update Links** (if enabled):
-   - Search all files in the directory tree for references to the old filename
-   - Update any found links to point to the new filename
-1. **Apply Rename**: Rename the file on disk
+1. **User Confirmation** (if enabled): Prompt user to approve each rename (`y`) or stop the run (`n`)
+1. **Apply Renames**: Rename each file on disk, stopping the run if the new filename already exists
+1. **Update Links** (if enabled): In a single pass over the directory tree, update links to any of the renamed files so they point to the new filenames
 1. **Recurse**: Move to the next directory level and repeat from step 2
 1. **Generate JDex**: After all renames complete, regenerate index files
 
@@ -141,13 +144,9 @@ The system automatically generates Markdown index files (`Index of [DirectoryNam
 
 ## Documentation
 
-This project includes comprehensive documentation to help you understand and contribute to the codebase:
-
-### Important Files
-- **[DEVELOPMENT.md](docs/development/DEVELOPMENT.md)** - Instructions for developing the code
-- **[TODO.md](docs/development/TODO.md)** - List of outstanding tasks and future work items
+- **[DEVELOPMENT.md](docs/DEVELOPMENT.md)** - Instructions for developing the code
+- **[TODO.md](docs/TODO.md)** - List of outstanding tasks and future work items
 - **[CLAUDE.md](CLAUDE.md)** - Instructions for the AI agent on how to develop this codebase
-
-### Directories in docs/ folder
-- `docs/ai-brainstorming` - Directory used to keep a log of brainstorm sessions with an AI agent
-- `docs/tasks` - Type annotation improvements and tasks
+- **[ai-brainstorming](docs/ai-brainstorming)** - Directory used to keep a log of brainstorm sessions with an AI agent
+- **[projects](docs/projects)** - Plans for in-progress projects
+- **[projects/completed](docs/projects/completed)** - Plans for projects that are done
