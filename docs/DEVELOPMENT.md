@@ -1,14 +1,31 @@
 # Development
 
-## Setup
+## Development Commands
 
-Create the virtual environment and install the package in editable mode, with dev tools:
+Install [uv](https://docs.astral.sh/uv/) and [just](https://just.systems/) first (eg: `brew install uv just`).
 
-```bash
-make install
-```
+| Command | Description |
+| --- | --- |
+| `uv sync` | Create the virtual environment (`.venv/`) and install the package in editable mode, with dev tools |
+| `just check` | Run all checks (formatting, linting, type checking) |
+| `just format` | Format code and fix linting issues |
+| `just test` | Run tests |
+| `just` | List all recipes |
+| `uv add <package>` | Add a runtime dependency |
+| `uv add --dev <package>` | Add a dev tool |
 
-Dependencies are declared in `pyproject.toml`. Runtime dependencies go in `dependencies`, dev tools in the `dev` extra.
+Dependencies are declared in `pyproject.toml` and locked in `uv.lock`. Commit `uv.lock` with any dependency change.
+
+## Tech Stack
+
+- **Python 3.12+**, packaged with setuptools and a `src/` layout
+- **uv** - Virtual environment, dependencies and lockfile
+- **just** - Task runner for the development commands
+- **Ruff** - Formatting and linting
+- **Pyright** - Type checking, in strict mode
+- **pytest** - Tests
+- **PyYAML** - Reading the config files. The only runtime dependency.
+- **cron** - Scheduled runs
 
 ## Project Layout
 
@@ -24,26 +41,6 @@ Dependencies are declared in `pyproject.toml`. Runtime dependencies go in `depen
 - `logs/` - Logs of scheduled runs. Gitignored and created at runtime.
 
 The package is installed in editable mode and reads the config files and `logs/` from the repo root, so it's run from its repo checkout.
-
-## Checks and Formatting
-
-Run all checks (formatting, linting, type checking):
-
-```bash
-make check
-```
-
-Format code and fix linting issues:
-
-```bash
-make format
-```
-
-Run tests:
-
-```bash
-make test
-```
 
 ## Design and Implementation
 

@@ -12,7 +12,7 @@ dependencies = [
     "pyyaml>=6.0.3",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
     "pyright>=1.1.0",
     "pytest>=9.0",
@@ -31,7 +31,7 @@ typeCheckingMode = "strict"
 pythonVersion = "3.12"
 include = ["src", "tests"]
 venvPath = "."
-venv = "venv"
+venv = ".venv"
 exclude = ["**/__pycache__"]
 
 [tool.ruff]
@@ -44,6 +44,7 @@ exclude = [
     "__pycache__",
     ".pytest_cache",
     ".pyright",
+    "docs",
 ]
 
 [tool.ruff.lint]

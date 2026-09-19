@@ -9,11 +9,10 @@ It also comes with some additional goodies:
 
 ## Setup
 
-1. Install Python 3.12 or newer.
+1. Install [uv](https://docs.astral.sh/uv/) (eg: `brew install uv`). It installs Python 3.12 or newer if needed.
 1. From this repo's directory, create the virtual environment and install the `johnny-indexer` command:
    ```bash
-   python3 -m venv venv
-   venv/bin/pip install -e .
+   uv sync
    ```
 1. Optionally, override the default config in `config.override.yaml` (see [Additional Configuration](#additional-configuration)). Eg:
    ```yaml
@@ -30,7 +29,7 @@ In your knowledge base, manually create the Area indexes with the format `X0-X9`
 ### One-time
 Run:
 ```bash
-venv/bin/johnny-indexer fix "/path/to/notes"
+uv run johnny-indexer fix "/path/to/notes"
 ```
 
 ### Recurring (Linux and macOS)
@@ -39,15 +38,15 @@ Schedule the indexer to run every few hours, anchored at 12 pm local time. Logs 
 0. On macOS, notes in iCloud Drive, Documents or Desktop need `/usr/sbin/cron` to have Full Disk Access (System Settings > Privacy & Security).
 1. Schedule the indexer:
    ```bash
-   venv/bin/johnny-indexer schedule install "/path/to/notes"
+   uv run johnny-indexer schedule install "/path/to/notes"
    ```
    - `--hours N` sets the hours between runs: `1`, `2`, `3`, `4`, `6`, `8`, `12` or `24` (default). Eg: `--hours 6`.
    - `--skip-test` skips the setup check that runs the indexer once during install.
 
 Manage scheduled runs:
 ```bash
-venv/bin/johnny-indexer schedule status
-venv/bin/johnny-indexer schedule uninstall "/path/to/notes"
+uv run johnny-indexer schedule status
+uv run johnny-indexer schedule uninstall "/path/to/notes"
 ```
 
 ## Additional Configuration
@@ -68,7 +67,7 @@ Excluded files are never renamed, aren't marked **(NOT INDEXED)** in JDex files,
 ### Generate JDex
 - `generate_jdex`: When `true`, regenerates the [JDex files](docs/DEVELOPMENT.md#jdex-file-generation) after fixing indexes
 
-To generate JDex files without fixing indexes, run `venv/bin/johnny-indexer jdex "/path/to/notes"`.
+To generate JDex files without fixing indexes, run `uv run johnny-indexer jdex "/path/to/notes"`.
 
 ### Auto Commit
 The notes directory must be in a git repository. Failures are reported in the output but never stop the indexer.
