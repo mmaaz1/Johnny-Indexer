@@ -11,3 +11,6 @@ fix_weblinks: true
 
 # Whether user approval is required before making any index updates
 prompt_for_approval: false
+
+# Whether JDex files are regenerated after fixing indexes
+generate_jdex: true

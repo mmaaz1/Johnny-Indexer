@@ -1,31 +1,9 @@
 # Johnny Indexer
 
-The Johnny Indexer is a Python-based tool designed to automate the indexing of files in a hierarchical directory structure using the [Johnny Decimal system](https://johnnydecimal.com/). This script removes all maintaining overhead required to ensure a consistent indexing format. It also auto-generates [JDex files](https://johnnydecimal.com/10-19-concepts/11-core/11.05-the-index/). 
+The Johnny Indexer is a Python tool designed to automate the indexing of files using the [Johnny Decimal system](https://johnnydecimal.com/).
 
 
-## Features
-
-- **Automatic Indexing**: Analyzes and updates file indexes based on their hierarchical position.
-- **Jdex Generation**: Produces a Markdown file summarizing the directory structure and indexing status.
-
-### Helper Scripts
-- **Daily Committer**: Script that can be used to commmit changes to your documentation daily
-
-### Additional Configuration
-These options are set in `config.yaml`.
-
-#### Exclude Files
-Excluded files are never renamed, aren't marked **(NOT INDEXED)** in JDex files, and aren't scanned for links.
-- `prefixes_excluded_from_indexing`: File name prefixes to exclude (eg: `.` for hidden files)
-- `patterns_excluded_from_indexing`: File name regex patterns to exclude (eg: `^\d{4}-\d{2}-\d{2}` for dated notes)
-
-#### Fix Obsidian Weblink
-- `fix_weblinks`: When `true`, updates Obsidian wiki links (`[[filename]]`) in Markdown files to point to renamed files
-
-#### Prompt User Before Acting
-- `prompt_for_approval`: When `true`, asks for confirmation before each rename. Answering `n` stops the run.
-
-## Knowledge Base Setup
+## Setup
 
 In your knowledge base, manually create the Area indexes with the format `X0-X9`. All files and directories within the areas will be indexed by this script.
 
@@ -42,6 +20,28 @@ Here is a sample cron job to fix indexes and create commit:
 */30 * * * * SCRIPT_DIR_PATH/.venv/bin/python3 SCRIPT_DIR_PATH/fix_indexes.py NOTES_PATH >> SCRIPT_DIR_PATH/logs/fix_indexes_MaazWorkNotes.log 2>&1
 */5 * * * * SCRIPT_DIR_PATH/.venv/bin/python3 SCRIPT_DIR_PATH/helper_scripts/commit_daily.py NOTES_PATH >> SCRIPT_DIR_PATH/logs/commit_daily.py.log 2>&1
 ```
+
+## Additional Configuration
+These options are set in `config.yaml`.
+
+### Exclude Files
+Excluded files are never renamed, aren't marked **(NOT INDEXED)** in JDex files, and aren't scanned for links.
+- `prefixes_excluded_from_indexing`: File name prefixes to exclude (eg: `.` for hidden files)
+- `patterns_excluded_from_indexing`: File name regex patterns to exclude (eg: `^\d{4}-\d{2}-\d{2}` for dated notes)
+
+### Fix Obsidian Weblink
+- `fix_weblinks`: When `true`, updates Obsidian wiki links (`[[filename]]`) in Markdown files to point to renamed files
+
+### Prompt User Before Acting
+- `prompt_for_approval`: When `true`, asks for confirmation before each rename. Answering `n` stops the run.
+
+### Generate JDex
+- `generate_jdex`: When `true`, regenerates the [JDex files](#jdex-file-generation) after fixing indexes
+
+To generate JDex files without fixing indexes, run `python create_jdex.py <path_to_directory>`.
+
+## Helper Scripts
+- **Daily Committer**: Script that can be used to commmit changes to your documentation daily
 
 ## Johnny Index System Specification
 
@@ -130,7 +130,7 @@ Files are processed using a breadth-first search (BFS) algorithm:
 1. **Apply Renames**: Rename each file on disk, stopping the run if the new filename already exists
 1. **Update Links** (if enabled): In a single pass over the directory tree, update links to any of the renamed files so they point to the new filenames
 1. **Recurse**: Move to the next directory level and repeat from step 2
-1. **Generate JDex**: After all renames complete, regenerate index files
+1. **Generate JDex** (if enabled): After all renames complete, regenerate index files
 
 ### JDex File Generation
 
@@ -138,7 +138,7 @@ The system automatically generates Markdown index files (`Index of [DirectoryNam
 
 - Document the directory structure in a hierarchical format
 - Mark files that are not properly indexed with **(NOT INDEXED)**
-- Are automatically updated after each fix operation
+- Are automatically updated after each fix operation when `generate_jdex` is enabled
 - Support Obsidian-style wiki links for markdown files (`[[filename]]`)
 
 

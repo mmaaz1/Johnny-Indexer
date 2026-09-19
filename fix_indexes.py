@@ -123,7 +123,8 @@ def main() -> None:
     areas = ih.get_areas_in_dir(root_file)
 
     bfs_fix_indexes(root_file, areas)
-    create_jdex(root_file)
+    if ch.load_from_config("generate_jdex"):
+        create_jdex(root_file)
 
 
 if __name__ == "__main__":

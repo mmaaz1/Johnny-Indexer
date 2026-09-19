@@ -76,7 +76,7 @@ def create_jdex(root_file: File) -> None:
 
 def main() -> None:
     if len(sys.argv) != 2:
-        raise ValueError("Usage: python fix_indexes.py <root_path>")
+        raise ValueError("Usage: python create_jdex.py <root_path>")
 
     root_path = sys.argv[1]
     root_file = File.from_abs_path(root_path, -1)
