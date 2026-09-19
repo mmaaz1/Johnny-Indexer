@@ -142,22 +142,25 @@ class IndexHelper:
 
     @staticmethod
     def sort_key(file: File) -> tuple[float, float, float]:
-        """Orders files by index, then files without one by creation time."""
+        """
+        Orders files by index, then files without one by creation time. Files without an
+        index, or with a non-numeric one (eg: Area 10-19), raise and sort last.
+        """
         parent_file_index = float("inf")
         try:
             idx = IndexHelper.get_index(file.get_parent())
             if idx is not None:
                 parent_file_index = float(idx)
-        except (ValueError, TypeError) as e:
-            logger.debug("No parent index for sorting %s: %s", file, e)
+        except (ValueError, TypeError):
+            pass
 
         main_index = float("inf")
         try:
             idx = IndexHelper.get_main_index(file)
             if idx is not None:
                 main_index = float(idx)
-        except (ValueError, TypeError) as e:
-            logger.debug("No main index for sorting %s: %s", file, e)
+        except (ValueError, TypeError):
+            pass
 
         creation_time = float("inf")
         if file.exists():
